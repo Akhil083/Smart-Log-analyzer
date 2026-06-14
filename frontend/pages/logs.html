@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Explorer | Smart Log Analyzer</title>
+    <link rel="stylesheet" href="../css/logs.css">
+    <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body data-page="logs">
+    <div class="app-shell">
+        <aside id="appsidebar"></aside>
+        <main class="app-content">
+            <header class="navbar">
+                <div>
+                    <h1>Smart Log Analyzer</h1>
+                    <p class="subtitle">Search, inspect, and correlate logs</p>
+                </div>
+                <nav>
+                    <a href="analytics.html">Analytics</a>
+                    <a href="logs.html" class="active">Logs</a>
+                </nav>
+            </header>
+
+            <section class="page-shell">
+                <section class="filters-card">
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label for="serviceFilter">Service</label>
+                            <input id="serviceFilter" type="text" placeholder="auth-service">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="levelFilter">Level</label>
+                            <select id="levelFilter">
+                                <option value="">All</option>
+                                <option value="INFO">INFO</option>
+                                <option value="WARNING">WARNING</option>
+                                <option value="ERROR">ERROR</option>
+                                <option value="CRITICAL">CRITICAL</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="environmentFilter">Environment</label>
+                            <input id="environmentFilter" type="text" placeholder="production">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="keywordFilter">Keyword</label>
+                            <input id="keywordFilter" type="text" placeholder="timeout">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="startFilter">Start Time</label>
+                            <input id="startFilter" type="datetime-local">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="endFilter">End Time</label>
+                            <input id="endFilter" type="datetime-local">
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button id="applyFiltersBtn" class="btn btn-primary">Apply Filters</button>
+                        <button id="resetFiltersBtn" class="btn btn-secondary">Reset</button>
+                    </div>
+                </section>
+
+                <section class="table-card">
+                    <div class="table-header">
+                        <div>
+                            <h2>Logs</h2>
+                            <p id="tableMeta">Loading logs...</p>
+                        </div>
+                        <div class="table-controls">
+                            <label>
+                                Rows
+                                <select id="limitSelect">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </label>
+                            <label>
+                                Order
+                                <select id="sortSelect">
+                                    <option value="desc" selected>Newest first</option>
+                                    <option value="asc">Oldest first</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Time</th>
+                                    <th>Level</th>
+                                    <th>Service</th>
+                                    <th>Environment</th>
+                                    <th>Message</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-bar">
+                        <button id="prevPageBtn" class="btn btn-secondary">Previous</button>
+                        <span id="pageIndicator">Page 1</span>
+                        <button id="nextPageBtn" class="btn btn-secondary">Next</button>
+                    </div>
+                </section>
+
+                <section class="details-grid">
+
+                    <article class="details-card">
+                        <div class="details-header">
+                            <h2>Log Details</h2>
+                            <span id="detailsState" class="badge">No log selected</span>
+                        </div>
+                        <div id="logDetails" class="details-content empty-state">
+                            Select a log row and click <strong>View</strong> to inspect details.
+                        </div>
+                    </article>
+
+                    <article class="details-card">
+                        <div class="details-header">
+                            <h2>Similar Logs</h2>
+                            <span id="similarState" class="badge">No results</span>
+                        </div>
+                        <div id="similarLogs" class="similar-list empty-state">
+                            Select a log row and click <strong>Similar</strong> to explore related patterns.
+                        </div>
+                    </article>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/logs.js"></script>
+    <script src="../js/layout.js"></script>
+</body>
+
+</html>

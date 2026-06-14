@@ -1,0 +1,120 @@
+body {
+    font-family: Arial;
+    background: #f7f9fc;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: white;
+}
+
+.metric-grid {
+    display: flex;
+    gap: 20px;
+    margin: 20px;
+}
+
+.metric-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 4px solid #6f7c97; /* Default fallback indicator accent */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+/* Metric Card Accent Classes */
+.metric-card.total-accent {
+    border-left-color: #4a6cf7; /* Primary Dashboard Blue */
+}
+
+.metric-card.error-accent {
+    border-left-color: #e63946; /* Error Crimson Red */
+}
+
+.metric-card.anomaly-accent {
+    border-left-color: #ff9f1c; /* Anomaly Alert Orange */
+}
+
+/* Card Number Styling */
+.metric-card span {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #24324b;
+}
+
+/* Card Label Styling */
+.metric-card h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #6f7c97;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+}
+
+th, 
+td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+th {
+    background: #fafafa;
+    color: #6f7c97;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+
+
+/*
+body {
+    font-family: Arial;
+    background: #f7f9fc;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: white;
+}
+
+.metric-grid {
+    display: flex;
+    gap: 20px;
+    margin: 20px;
+}
+
+.metric-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    flex: 1;
+}
+
+table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+}
+
+th, 
+td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+*/

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UF-8">
+    <title> Log Analytics Dashboard</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/analytics.css">
+</head>
+
+<body data-page="analytics">
+    <div class="app-shell">
+        <aside id="appsidebar"></aside>
+        <main class="app-content">
+            <!-- NavBar-->
+            <header class="navbar">
+                <h1>Smart Log Analyzer</h1>
+            </header>
+
+            <!-- Main Container -->
+            <section class="container">
+                <!--Filter Section-->
+                <section class="filters">
+                    <div class="filter-group">
+                        <label>Services</label>
+                        <input type="text" id="filterService" , placeholder="e.g auth-service">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Level</label>
+                        <select id="filterLevel">
+                            <option value="">All</option>
+                            <option value="INFO">INFO</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Start Time</label>
+                        <input type="datetime-local" id="filterStart">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>End Time</label>
+                        <input type="datetime-local" id="filterEnd">
+                    </div>
+
+                    <button id="applyFilters">Apply Filters</button>
+                </section>
+
+
+                <section class="summary">
+                    <div class="card">
+                        <h3>Total Logs</h3>
+                        <p id="totalLogs">--</p>
+                    </div>
+                    <div class="card">
+                        <h3>Error Log</h3>
+                        <p id="errorLogs">--</p>
+                    </div>
+                </section>
+
+                <!--TimeLine Section-->
+                <section class="section">
+                    <h2>Log Timeline</h2>
+                    <canvas id="timelineChart"></canvas>
+                </section>
+
+                <!--Log By Level-->
+                <section class="section">
+                    <h2>Log by Level</h2>
+                    <div id="levelContainer" class="levels"></div>
+                </section>
+
+            </section>
+        </main>
+    </div>
+    
+    <script src="../js/layout.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/analytics.js" defer></script>
+    
+</body>
+</html>

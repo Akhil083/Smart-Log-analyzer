@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts | Smart Log Analyzer</title>
+    <link rel="stylesheet" href="../css/alerts.css">
+    <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body data-page="alerts">
+    <div class="app-shell">
+        <aside id="appsidebar"></aside>
+        <main class="app-content">
+            <header class="navbar">
+                <div>
+                    <h1>Smart Log Analyzer</h1>
+                    <p class="subtitle">Monitor threshold breaches and anomaly-driven alerts</p>
+                </div>
+                <nav>
+                    <a href="analytics.html">Analytics</a>
+                    <a href="logs.html">Logs</a>
+                    <a href="alerts.html" class="active">Alerts</a>
+                </nav>
+            </header>
+
+            <section class="page-shell">
+                <section class="hero-panel">
+                    <div class="hero-copy">
+                        <h2>Alerts Overview</h2>
+                        <p>Review stored alerts and run manual checks.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <button id="runAlertCheckBtn" class="btn btn-primary">Run Alert Check</button>
+                        <button id="refreshAlertsBtn" class="btn btn-secondary">Refresh Alerts</button>
+                    </div>
+                </section>
+
+                <section class="metric-grid">
+                    <article class="metric-card total-accent">
+                        <h4>Total Alerts</h4>
+                        <span id="totalAlerts">--</span>
+                    </article>
+
+                    <article class="metric-card error-accent">
+                        <h4>Error Alerts</h4>
+                        <span id="errorAlerts">--</span>
+                    </article>
+
+                    <article class="metric-card anomaly-accent">
+                        <h4>Anomaly Alerts</h4>
+                        <span id="anomalyAlerts">--</span>
+                    </article>
+                </section>
+
+                <section class="table-container" style="margin: 20px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Service</th>
+                                <th>Metric</th>
+                                <th>Value</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alertstable">
+                            <!-- JavaScript dynamically injects rows here -->
+                        </tbody>
+                    </table>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/layout.js"></script>
+    <script src="../js/alerts.js"></script>
+</body>
+
+</html>

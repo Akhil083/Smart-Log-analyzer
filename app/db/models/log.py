@@ -80,7 +80,7 @@ class Log(Base):
 
     request_id: Mapped[str | None] = mapped_column(
         String(50),
-        nullable=False,
+        nullable=True,
         index=True,
         doc="Request correlation identifier if available."
     )
@@ -92,7 +92,7 @@ class Log(Base):
         doc="Hostname, container name or instance identifier."
     )
 
-    log_metadata: Mapped[str | Any] = mapped_column(
+    log_metadata: Mapped[dict[str, Any]] = mapped_column(
         "metadata",
         JSONB,
         nullable=False,

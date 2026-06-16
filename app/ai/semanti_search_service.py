@@ -42,10 +42,9 @@ class SemanticSearchService:
         cleaned_texts = [item[1] for item in cleaned_texts_with_index]
 
         query_embedding = np.array(
-            self.embedding_service.embed_texts(cleaned_query),
-            dtype=np.float32, 
-        )
-
+            self.embedding_service.embed_text(cleaned_query),
+            dtype=np.float32,
+)
         text_embedding = np.array(
             self.embedding_service.embed_texts(cleaned_texts),
             dtype=np.float32, 

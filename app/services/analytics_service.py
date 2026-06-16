@@ -18,28 +18,77 @@ class AnalyticsServices:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_summary(self, filters: LogFilterParams| None = None) -> dict[str,int]:
-        """
-        Get overall system summary
-        """
+    async def get_summary(
+    self,
+    filters: LogFilterParams | None = None,
+) -> dict:
 
         effective_filters = filters or LogFilterParams()
 
         total_query = select(func.count()).select_from(Log)
-        total_query = apply_log_filters(total_query, effective_filters)
+        total_query = apply_log_filters(
+            total_query,
+            effective_filters
+        )
 
-        error_query = select(func.count()).where(Log.level == "ERROR")
-        error_query = apply_log_filters(error_query, effective_filters)
+        error_query = (
+            select(func.count())
+            .where(Log.level == "ERROR")
+        )
+        error_query = apply_log_filters(
+            error_query,
+            effective_filters
+        )
 
-        total_result = await self.session.execute(total_query)
-        error_result = await self.session.execute(error_query)
+        warning_query = (
+            select(func.count())
+            .where(Log.level == "WARNING")
+        )
+        warning_query = apply_log_filters(
+            warning_query,
+            effective_filters
+        )
 
-        total_logs = total_result.scalar_one()
-        error_logs = error_result.scalar_one()
+        critical_query = (
+            select(func.count())
+            .where(Log.level == "CRITICAL")
+        )
+        critical_query = apply_log_filters(
+            critical_query,
+            effective_filters
+        )
+
+        total_logs = (
+            await self.session.execute(total_query)
+        ).scalar_one()
+
+        error_logs = (
+            await self.session.execute(error_query)
+        ).scalar_one()
+
+        warning_logs = (
+            await self.session.execute(warning_query)
+        ).scalar_one()
+
+        critical_logs = (
+            await self.session.execute(critical_query)
+        ).scalar_one()
+
+        error_rate = (
+            round(
+                (error_logs / total_logs) * 100,
+                2
+            )
+            if total_logs
+            else 0
+        )
 
         return {
-            "total_logs" : total_logs,
-            "error_logs" : error_logs
+            "total_logs": total_logs,
+            "error_logs": error_logs,
+            "warning_logs": warning_logs,
+            "critical_logs": critical_logs,
+            "error_rate": error_rate,
         }
     
 
@@ -99,7 +148,7 @@ class AnalyticsServices:
             "minute" : "minute",
             "hour" : "hour",
             "day" : "day"
-        }.get(interval, "minutes")
+        }.get(interval, "minute")
 
         time_bucket = func.date_trunc(trunc_func,Log.emitted_at)
 
@@ -123,7 +172,7 @@ class AnalyticsServices:
 
         return [
             {
-                "time" : str(row.time),
+                "time" : row.time,
                 "total" : row.total,
                 "errors" : row.errors,
             } 
@@ -178,4 +227,78 @@ class AnalyticsServices:
         
         clustering_service = ClusteringService(n_clusters= n_clusters)
         return clustering_service.get_cluster_summary(messages)
+    
 
+
+
+    async def get_top_error_services(
+    self,
+    limit: int = 5,
+):
+        query = (
+            select(
+                Log.service,
+                func.count().label("errors")
+            )
+            .where(Log.level == "ERROR")
+            .group_by(Log.service)
+            .order_by(
+                func.count().desc()
+            )
+            .limit(limit)
+        )
+
+        result = await self.session.execute(query)
+
+        return [
+            {
+                "service": row.service,
+                "errors": row.errors,
+            }
+            for row in result.all()
+        ]
+
+
+
+    async def get_warning_count(
+        self,
+        filters: LogFilterParams | None = None,
+    ) -> int:
+
+        effective_filters = filters or LogFilterParams()
+
+        query = (
+            select(func.count())
+            .where(Log.level == "WARNING")
+        )
+
+        query = apply_log_filters(
+            query,
+            effective_filters,
+        )
+
+        result = await self.session.execute(query)
+
+        return result.scalar_one()
+
+
+    async def get_critical_count(
+        self,
+        filters: LogFilterParams | None = None,
+    ) -> int:
+
+        effective_filters = filters or LogFilterParams()
+
+        query = (
+            select(func.count())
+            .where(Log.level == "CRITICAL")
+        )
+
+        query = apply_log_filters(
+            query,
+            effective_filters,
+        )
+
+        result = await self.session.execute(query)
+
+        return result.scalar_one()

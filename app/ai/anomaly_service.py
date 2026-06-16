@@ -23,6 +23,9 @@ class AnomalyService:
         if not values:
             return []
         
+        if len(values) < 5:
+            return [1] * len(values)
+        
         data = np.array(values).reshape(-1, 1)
         self.model.fit(data)
         

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import insert, select, func 
+from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.alert import Alert
@@ -16,63 +17,123 @@ class AlertService:
         self.analysis = AnalyticsServices(session)
 
     
-    async def check_error_threshold(self, threshold: int = 50, service: str | None = None, ) :
-
-        """Check if error count exceed threshold """
+    async def check_error_threshold(
+    self,
+    threshold: int = 50,
+    service: str | None = None,
+):
+        """
+        Check if error count exceeds threshold.
+        """
 
         filters = None
+
         if service:
-            filters = LogFilterParams(services=service)
-        
-        summary = await self.analysis.get_summary(filters=filters)
+            filters = LogFilterParams(service=service)
+
+        summary = await self.analysis.get_summary(
+            filters=filters
+        )
 
         error_count = summary["error_logs"]
 
-        if error_count >= threshold:
-            alert = {
-                "services" : service or "all",
-                "metrice": "error_count",
-                "threshold" : threshold,
-                "value" : error_count,
-                "message" : f"High error count: {error_count}",
+        if error_count < threshold:
+            return []
 
-            }
+        # Severity calculation
+        severity = "LOW"
 
+        if error_count >= threshold * 4:
+            severity = "CRITICAL"
+        elif error_count >= threshold * 3:
+            severity = "HIGH"
+        elif error_count >= threshold * 2:
+            severity = "MEDIUM"
+
+        alert = {
+            "service": service or "all",
+            "metric": "error_count",
+            "severity": severity,
+            "threshold": threshold,
+            "value": error_count,
+            "message": f"High error count detected: {error_count}",
+        }
+
+        already_exists = await self._alert_recently_created(
+            service=service or "all",
+            metric="error_count",
+        )
+
+        if not already_exists:
             await self._create_alert(alert)
-            return [alert]
+
+        return [alert]
+                    
         
-        return []
     
 
 
-    async def check_anomaly_alerts(self, interval:str = "minute"):
-        
-        timeline = await self.analysis.get_timeline_with_anomalies(interval=interval)
+    async def check_anomaly_alerts(
+    self,
+    interval: str = "minute",
+):
+        """
+        Detect anomaly spikes in recent log traffic.
+        """
 
-        anomalies = [point for point in timeline[-5:] if point["anomaly"]]
+        timeline = await self.analysis.get_timeline_with_anomalies(
+            interval=interval
+        )
+
+        anomalies = [
+            point
+            for point in timeline[-5:]
+            if point["anomaly"]
+        ]
 
         if not anomalies:
             return []
-        
+
         alerts = []
 
         for anomaly in anomalies:
+
+            total_logs = anomaly["total"]
+
+            severity = "HIGH"
+
+            if total_logs >= 500:
+                severity = "CRITICAL"
+
             alert = {
-                "services" : "all",
-                "metrice": "anomaly",
-                "threshold" : 1,
-                "value" : anomaly["total"],
-                "message" : f"Anomaly detected at {anomaly['time']} with {anomaly['total']} logs",
+                "service": "all",
+                "metric": "anomaly",
+                "severity": severity,
+                "threshold": 1,
+                "value": total_logs,
+                "message": (
+                    f"Anomaly detected at "
+                    f"{anomaly['time']} "
+                    f"with {total_logs} logs"
+                ),
             }
 
-            await self._create_alert(alert)
+            already_exists = await self._alert_recently_created(
+                service="all",
+                metric="anomaly",
+            )
+
+            if not already_exists:
+                await self._create_alert(alert)
+
             alerts.append(alert)
 
         return alerts
+        
     
 
 
-    async def list_alerts(self, service: str |None = None, metrice: str |None = None, limit: int = 100):
+    async def list_alerts(self, service: str |None = None, metric: str |None = None, limit: int = 100,   severity: str | None = None,):
         stmt = select(Alert)
         count_stmt = select(func.count()).select_from(Alert)
 
@@ -80,22 +141,58 @@ class AlertService:
             stmt = stmt.where(Alert.service == service)
             count_stmt = count_stmt.where(Alert.service == service)
 
-        if metrice: 
-            stmt = stmt.where(Alert.metrice == metrice)
-            count_stmt = count_stmt.where(Alert.metrice == metrice)
+        if metric: 
+            stmt = stmt.where(Alert.metric == metric)
+            count_stmt = count_stmt.where(Alert.metric == metric)
+
+        if severity:
+            stmt = stmt.where(Alert.severity == severity)
+            count_stmt = count_stmt.where(Alert.severity == severity)
 
 
         stmt = stmt.order_by(Alert.created_at.desc()).limit(limit)
         
         result = await self.session.execute(stmt)
-        items = result.scalar().all()
+        items = result.scalars().all()
 
         count_result = await self.session.execute(count_stmt)
         total = count_result.scalar_one()
 
         return items, total
 
-    
+
+
+    async def _alert_recently_created(
+    self,
+    service: str,
+    metric: str,
+    cooldown_minutes: int = 15,
+) -> bool:
+
+        cutoff = datetime.utcnow() - timedelta(
+            minutes=cooldown_minutes
+        )
+
+        stmt = (
+            select(Alert)
+            .where(Alert.service == service)
+            .where(Alert.metric == metric)
+            .where(Alert.created_at >= cutoff)
+            .limit(1)
+        )
+
+        result = await self.session.execute(stmt)
+
+        return result.scalar_one_or_none() is not None
+
+
+    async def get_active_alert_count(self) -> int:
+        stmt = select(func.count()).select_from(Alert)
+
+        result = await self.session.execute(stmt)
+
+        return result.scalar_one()
+        
 
     async def _create_alert(self, alert_data: dict):
 

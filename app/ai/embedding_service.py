@@ -46,7 +46,7 @@ class EmbeddingService:
     def embed_texts(self, texts: list[str], batch_size: int = 32)  -> list[list[float]]:
         """Generate a normalized embedding vector for a multiple text input"""
 
-        cleaned_texts = [texts.strip() for text in texts if text.strip()]
+        cleaned_texts = [text.strip() for text in texts if text.strip()]
         if not cleaned_texts :
             return[]
         
@@ -60,7 +60,7 @@ class EmbeddingService:
         embeddings = [vector.tolist() for vector in vectors]
         for embedding in embeddings:
             self._validate_dimensions(embedding)
-        return embedding
+        return embeddings
 
 
 

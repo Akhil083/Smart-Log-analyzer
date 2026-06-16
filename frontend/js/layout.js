@@ -1,8 +1,8 @@
 const SIDEBAR_ITEMS = [
-    { key: 'home', label: 'Home', icon: '🏠', href: 'index.html' },
-    { key: 'analytics', label: 'Analytics', icon: '📊', href: 'analytics.html' },
-    { key: 'logs', label: 'Logs', icon: '📋', href: 'logs.html' },
-    { key: 'alerts', label: 'Alerts', icon: '🔔', href: 'alerts.html' }
+    { key: 'home', label: 'Home', icon: '🏠', href: '/' },
+    { key: 'analytics', label: 'Analytics', icon: '📊', href: 'analytics' },
+    { key: 'logs', label: 'Logs', icon: '📋', href: 'logs' },
+    { key: 'alerts', label: 'Alerts', icon: '🔔', href: 'alerts' }
 ];
 
 async function injectSidebar() {

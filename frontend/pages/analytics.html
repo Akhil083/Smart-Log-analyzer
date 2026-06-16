@@ -2,84 +2,366 @@
 <html lang="en">
 
 <head>
-    <meta charset="UF-8">
-    <title> Log Analytics Dashboard</title>
-    <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/analytics.css">
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analytics | Smart Log Analyzer</title>
+
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/analytics.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
-<body data-page="analytics">
-    <div class="app-shell">
-        <aside id="appsidebar"></aside>
-        <main class="app-content">
-            <!-- NavBar-->
-            <header class="navbar">
-                <h1>Smart Log Analyzer</h1>
-            </header>
+<body>
 
-            <!-- Main Container -->
-            <section class="container">
-                <!--Filter Section-->
-                <section class="filters">
-                    <div class="filter-group">
-                        <label>Services</label>
-                        <input type="text" id="filterService" , placeholder="e.g auth-service">
-                    </div>
+    <!-- SIDEBAR -->
 
-                    <div class="filter-group">
-                        <label>Level</label>
-                        <select id="filterLevel">
-                            <option value="">All</option>
-                            <option value="INFO">INFO</option>
-                            <option value="WARNING">WARNING</option>
-                            <option value="ERROR">ERROR</option>
-                        </select>
-                    </div>
+    <aside class="sidebar">
 
-                    <div class="filter-group">
-                        <label>Start Time</label>
-                        <input type="datetime-local" id="filterStart">
-                    </div>
+        <div class="logo">
+            <h2>SmartLog</h2>
+        </div>
 
-                    <div class="filter-group">
-                        <label>End Time</label>
-                        <input type="datetime-local" id="filterEnd">
-                    </div>
+        <nav>
 
-                    <button id="applyFilters">Apply Filters</button>
-                </section>
+            <a href="/">
+                Dashboard
+            </a>
 
+            <a href="/logs">
+                Logs
+            </a>
 
-                <section class="summary">
-                    <div class="card">
-                        <h3>Total Logs</h3>
-                        <p id="totalLogs">--</p>
-                    </div>
-                    <div class="card">
-                        <h3>Error Log</h3>
-                        <p id="errorLogs">--</p>
-                    </div>
-                </section>
+            <a href="/analytics" class="active">
+                Analytics
+            </a>
 
-                <!--TimeLine Section-->
-                <section class="section">
-                    <h2>Log Timeline</h2>
-                    <canvas id="timelineChart"></canvas>
-                </section>
+            <a href="/alerts">
+                Alerts
+            </a>
 
-                <!--Log By Level-->
-                <section class="section">
-                    <h2>Log by Level</h2>
-                    <div id="levelContainer" class="levels"></div>
-                </section>
+            <a href="/settings">
+                Settings
+            </a>
 
-            </section>
-        </main>
-    </div>
-    
-    <script src="../js/layout.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/analytics.js" defer></script>
-    
+        </nav>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+        <!-- HEADER -->
+
+        <header class="page-header">
+
+            <div>
+                <h1>Analytics Center</h1>
+
+                <p>
+                    AI powered insights, anomaly detection,
+                    clustering and semantic analysis.
+                </p>
+            </div>
+
+            <div class="header-actions">
+
+                <button id="refreshAnalyticsBtn" class="btn-primary">
+                    Refresh
+                </button>
+
+                <div class="last-refresh">
+                    Last Updated:
+                    <span id="lastUpdated">
+                        --
+                    </span>
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- KPI CARDS -->
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+                <h3>Total Logs</h3>
+                <span id="totalLogs">--</span>
+            </div>
+
+            <div class="stat-card">
+                <h3>Error Logs</h3>
+                <span id="errorLogs">--</span>
+            </div>
+
+            <div class="stat-card">
+                <h3>Warning Logs</h3>
+                <span id="warningLogs">--</span>
+            </div>
+
+            <div class="stat-card">
+                <h3>Critical Logs</h3>
+                <span id="criticalLogs">--</span>
+            </div>
+
+        </section>
+
+        <!-- TOP SERVICES -->
+
+        <section class="card-section">
+
+            <div class="section-header">
+                <h2>Top Error Services</h2>
+            </div>
+
+            <div class="top-services-grid" id="topServicesContainer">
+
+                Loading...
+
+            </div>
+
+        </section>
+
+        <!-- LEVEL DISTRIBUTION -->
+
+        <section class="card-section">
+
+            <div class="section-header">
+                <h2>Log Levels</h2>
+            </div>
+
+            <div id="levelDistribution" class="distribution-grid">
+
+                Loading...
+
+            </div>
+
+        </section>
+
+        <!-- SERVICE DISTRIBUTION -->
+
+        <section class="card-section">
+
+            <div class="section-header">
+                <h2>Services Distribution</h2>
+            </div>
+
+            <div id="serviceDistribution" class="distribution-grid">
+
+                Loading...
+
+            </div>
+
+        </section>
+
+        <!-- TIMELINE -->
+
+        <section class="card-section">
+
+            <div class="section-header">
+
+                <h2>Timeline Analysis</h2>
+
+                <select id="timelineInterval">
+
+                    <option value="minute">
+                        Minute
+                    </option>
+
+                    <option value="hour">
+                        Hour
+                    </option>
+
+                    <option value="day">
+                        Day
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="timeline-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Time</th>
+                            <th>Total Logs</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="timelineTableBody">
+
+                        <tr>
+                            <td colspan="2">
+                                Loading...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- ANOMALIES -->
+
+        <section class="card-section">
+
+            <div class="section-header">
+                <h2>Anomaly Detection</h2>
+            </div>
+
+            <div id="anomalyContainer" class="anomaly-grid">
+
+                Loading...
+
+            </div>
+
+        </section>
+
+        <!-- CLUSTERING -->
+
+        <section class="card-section">
+
+            <div class="section-header">
+
+                <h2>AI Log Clustering</h2>
+
+                <div>
+
+                    <input type="number" id="clusterLimit" value="200" min="1">
+
+                    <input type="number" id="clusterCount" value="5" min="1" max="20">
+
+                    <button id="runClusterBtn" class="btn-primary">
+                        Run
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div id="clusterResults" class="cluster-grid">
+
+                Loading...
+
+            </div>
+
+        </section>
+
+        <!-- SEMANTIC SEARCH -->
+
+        <section class="card-section">
+
+            <div class="section-header">
+                <h2>Semantic Search</h2>
+            </div>
+
+            <div class="semantic-search-box">
+
+                <input type="text" id="semanticQuery" placeholder="Search logs using natural language...">
+
+                <button id="semanticSearchBtn" class="btn-primary">
+                    Search
+                </button>
+
+            </div>
+
+            <div id="semanticResults" class="semantic-results">
+
+                Search results will appear here.
+
+            </div>
+
+        </section>
+
+        <!-- QUICK FILTERS -->
+
+        <section class="card-section">
+
+            <div class="section-header">
+                <h2>Analytics Filters</h2>
+            </div>
+
+            <div class="filter-grid">
+
+                <div class="form-group">
+
+                    <label>Service</label>
+
+                    <input type="text" id="filterService">
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Level</label>
+
+                    <select id="filterLevel">
+
+                        <option value="">
+                            All
+                        </option>
+
+                        <option value="INFO">
+                            INFO
+                        </option>
+
+                        <option value="WARNING">
+                            WARNING
+                        </option>
+
+                        <option value="ERROR">
+                            ERROR
+                        </option>
+
+                        <option value="CRITICAL">
+                            CRITICAL
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Environment</label>
+
+                    <input type="text" id="filterEnvironment">
+
+                </div>
+
+            </div>
+
+            <div class="filter-actions">
+
+                <button id="applyAnalyticsFiltersBtn" class="btn-primary" type="button">
+                    Apply Filters
+                </button>
+
+                <button id="clearAnalyticsFiltersBtn" class="btn-secondary" type="button">
+                    Clear Filters
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/analytics.js"></script>
+
 </body>
+
 </html>

@@ -68,6 +68,7 @@ class SemanticLogSearchService:
         from app.services.query_filter import apply_log_filters
 
         self._validate_limits(candidate_limit,top_k)
+        top_k = min(top_k, candidate_limit)
         effective_filters = filters or LogFilterParams()
 
         query_stmt = select(Log).where(Log.message.is_not(None))
@@ -85,10 +86,11 @@ class SemanticLogSearchService:
         )
     
 
-    async def find_similar_to_log(self, source_log: Log, candidate_limit: int = 200,top_k: int = 10, same_service_only: bool = False):
+    async def find_similar_to_log(self, source_log: Log, candidate_limit: int = 200,top_k: int = 10, same_service_only: bool = False,):
         """Find logs semanticallly similar to an existing log record"""
 
         self._validate_limits(candidate_limit,top_k)
+        top_k = min(top_k, candidate_limit)
 
         source_message = source_log.message.strip()
         if not source_message:

@@ -18,8 +18,13 @@ class CleanupService:
 
         stmt = delete(Log).where(Log.ingested_at < cutoff)
 
-        result = await self.session.execute(stmt)
-        await self.session.commit()
+        try:
+            result = await self.session.execute(stmt)
+            await self.session.commit()
+            return result.rowcount
+        except Exception:
+            await self.session.rollback()
+            raise
 
-        return result.rowcount
+
         

@@ -9,11 +9,12 @@ class AlertRead(BaseModel):
 
     id: int
     service: str
-    metrice : str
+    metric : str
     threshold: int
     value: int
     message: str
     created_at : datetime
+    severity: str
 
 
 class AlertListResponse(BaseModel):
@@ -23,10 +24,11 @@ class AlertListResponse(BaseModel):
 
 class TriggeredAlert(BaseModel):
     service: str
-    metrice : str
+    metric : str
     threshold: int
     value: int
     message: str
+    severity: str
 
 
 class AlertCheckResponse(BaseModel):

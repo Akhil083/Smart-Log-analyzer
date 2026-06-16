@@ -1,307 +1,572 @@
-const API_BASE = "http://127.0.0.1:8000/api/v1";
+document.addEventListener("DOMContentLoaded", () => {
+    initializePage();
+});
 
-const state = {
-  page: 1,
-  limit: 20,
-  sortOrder: "desc",
-  total: 0,
-  selectedLogId: null,
-};
+let currentPage = 1;
+let currentLimit = 20;
+let totalPages = 1;
 
-function buildQueryString(extra = {}) {
-  const params = new URLSearchParams();
-  
-  const service = document.getElementById("serviceFilter")?.value.trim();
-  const level = document.getElementById("levelFilter")?.value;
-  const environment = document.getElementById("environmentFilter")?.value.trim();
-  const keyword = document.getElementById("keywordFilter")?.value.trim();
-  const start = document.getElementById("startFilter")?.value;
-  const end = document.getElementById("endFilter")?.value;
-  
-  if (service) params.set("service", service);
-  if (level) params.set("level", level);
-  if (environment) params.set("environment", environment);
-  if (keyword) params.set("keyword", keyword);
-  if (start) params.set("start_time", new Date(start).toISOString());
-  if (end) params.set("end_time", new Date(end).toISOString());
-  
-  params.set("page", String(extra.page ?? state.page));
-  params.set("limit", String(extra.limit ?? state.limit));
-  params.set("sort_order", extra.sortOrder ?? state.sortOrder);
-  
-  if (extra.candidateLimit) params.set("candidate_limit", String(extra.candidateLimit));
-  if (extra.topK) params.set("top_k", String(extra.topK));
-  if (extra.sameServiceOnly) params.set("same_service_only", "true");
-  
-  return params.toString();
+async function initializePage() {
+    registerEvents();
+
+    await Promise.all([
+        loadLogs(),
+        loadSummary(),
+        loadServiceCount()
+    ]);
 }
 
+/* ==========================================
+   EVENTS
+========================================== */
 
-function levelClass(level) {
-  const normalized = (level || "").toUpperCase();
-  if (normalized === "ERROR") return "level-pill level-error";
-  if (normalized === "CRITICAL") return "level-pill level-critical";
-  if (normalized === "WARNING") return "level-pill level-warning";
-  return "level-pill level-info";
+function registerEvents() {
+
+    document
+        .getElementById("refreshLogsBtn")
+        ?.addEventListener("click", refreshPage);
+
+    document
+        .getElementById("applyFiltersBtn")
+        ?.addEventListener("click", () => {
+            currentPage = 1;
+            loadLogs();
+        });
+
+    document
+        .getElementById("clearFiltersBtn")
+        ?.addEventListener("click", clearFilters);
+
+    document
+    .getElementById("uploadBtn")
+    ?.addEventListener("click", uploadLogs);
+
+    document
+        .getElementById("prevPageBtn")
+        ?.addEventListener("click", previousPage);
+
+    document
+        .getElementById("nextPageBtn")
+        ?.addEventListener("click", nextPage);
 }
 
-function formatDate(value) {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
+/* ==========================================
+   SUMMARY CARDS
+========================================== */
+
+async function loadSummary() {
+    try {
+
+        const response = await fetch(
+            `${API_BASE_URL}/analytics/summary`
+        );
+
+        const data = await response.json();
+
+        document.getElementById("totalLogs").textContent =
+            formatNumber(data.total_logs);
+
+        document.getElementById("errorLogs").textContent =
+            formatNumber(data.error_logs);
+
+        document.getElementById("warningLogs").textContent =
+            formatNumber(data.warning_logs);
+
+        document.getElementById("criticalLogs").textContent =
+            formatNumber(data.critical_logs);
+
+    } catch (error) {
+        console.error(error);
+    }
 }
 
-function formatMetadata(metadata) {
-  try {
-    return JSON.stringify(metadata ?? {}, null, 2);
-  } catch {
-    return "{}";
-  }
+async function loadServiceCount() {
+    try {
+
+        const response = await fetch(
+            `${API_BASE_URL}/logs/service-count`
+        );
+
+        const data = await response.json();
+
+        document.getElementById("serviceCount").textContent =
+            data.service_count ?? 0;
+
+    } catch (error) {
+        console.error(error);
+    }
 }
 
-function updateTableMeta() {
-  const start = state.total === 0 ? 0 : (state.page - 1) * state.limit + 1;
-  const end = Math.min(state.page * state.limit, state.total);
-  const meta = document.getElementById("tableMeta");
-  meta.textContent = state.total
-    ? `Showing ${start}-${end} of ${state.total} matching logs`
-    : "No logs found for the selected filters.";
-    
-  document.getElementById("pageIndicator").textContent = `Page ${state.page}`;
-  document.getElementById("prevPageBtn").disabled = state.page === 1;
-  document.getElementById("nextPageBtn").disabled = end >= state.total;
-}
-
-// Utility function to prevent XSS injections
-function escapeHtml(str) {
-  if (str === null || str === undefined) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function renderLogsTable(items) {
-  const tbody = document.getElementById("logsTableBody");
-  tbody.innerHTML = "";
-
-  const safeItems = Array.isArray(items) ? items : [];
-  
-  if (!safeItems.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="7" class="empty-state">No logs match the selected filters.</td>
-      </tr>
-    `;
-    return;
-  }
-  
-  safeItems.forEach((log) => {
-    const row = document.createElement("tr");
-    
-    // levelClass and formatDate are safe as they return controlled system strings,
-    // but raw data fields like message, service, environment, and ID must be escaped.
-    row.innerHTML = `
-      <td>${escapeHtml(log.id)}</td>
-      <td>${formatDate(log.emitted_at)}</td>
-      <td><span class="${levelClass(log.level)}">${escapeHtml(log.level)}</span></td>
-      <td>${escapeHtml(log.service)}</td>
-      <td>${escapeHtml(log.environment)}</td>
-      <td class="message-cell" title="${escapeHtml(log.message)}">${escapeHtml(log.message)}</td>
-      <td>
-        <div class="actions-cell">
-          <button class="btn btn-ghost" data-action="view" data-id="${escapeHtml(log.id)}">View</button>
-          <button class="btn btn-ghost" data-action="similar" data-id="${escapeHtml(log.id)}">Similar</button>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-
-function renderLogDetails(log) {
-  const detailsState = document.getElementById("detailsState");
-  const container = document.getElementById("logDetails");
-  
-  detailsState.textContent = `Log #${escapeHtml(log.id)}`;
-  
-  container.classList.remove("empty-state");
-  container.innerHTML = `
-    <div class="detail-grid">
-      <div class="detail-item">
-        <h4>Message</h4>
-        <p>${escapeHtml(log.message)}</p>
-      </div>
-    </div>
-    
-    <div class="detail-grid">
-      <div class="detail-item"><h4>Service</h4><p>${escapeHtml(log.service)}</p></div>
-      <div class="detail-item"><h4>Level</h4><p>${escapeHtml(log.level)}</p></div>
-      <div class="detail-item"><h4>Environment</h4><p>${escapeHtml(log.environment)}</p></div>
-      <div class="detail-item"><h4>Emitted At</h4><p>${formatDate(log.emitted_at)}</p></div>
-      <div class="detail-item"><h4>Ingested At</h4><p>${formatDate(log.ingested_at)}</p></div>
-      <div class="detail-item"><h4>Trace ID</h4><p>${escapeHtml(log.trace_id || "-")}</p></div>
-      <div class="detail-item"><h4>Request ID</h4><p>${escapeHtml(log.request_id || "-")}</p></div>
-      <div class="detail-item"><h4>Host</h4><p>${escapeHtml(log.host || "-")}</p></div>
-      <div class="detail-item"><h4>Source</h4><p>${escapeHtml(log.source || "-")}</p></div>
-      
-      <div class="detail-item">
-        <h4>Metadata</h4>
-        <pre>${escapeHtml(formatMetadata(log.metadata))}</pre>
-      </div>
-    </div>
-  `;
-}
-
-
-function renderSimilarLogs(results) {
-  const stateBadge = document.getElementById("similarState");
-  const container = document.getElementById("similarLogs");
-  
-  if (!results.length) {
-    stateBadge.textContent = "No results";
-    container.classList.add("empty-state");
-    container.innerHTML = "No similar logs found for the selected record.";
-    return;
-  }
-  
-  stateBadge.textContent = `${results.length} matches`;
-  container.classList.remove("empty-state");
-  
-  container.innerHTML = results.map((item) => `
-    <article class="similar-item">
-      <div class="similar-score">Similarity score: ${Number(item.score).toFixed(4)}</div>
-      <div class="similar-meta">
-        <span>#${escapeHtml(item.log.id)}</span>
-        <span>${escapeHtml(item.log.service)}</span>
-        <span>${escapeHtml(item.log.level)}</span>
-        <span>${formatDate(item.log.emitted_at)}</span>
-      </div>
-      <div class="similar-message">${escapeHtml(item.log.message)}</div>
-    </article>
-  `).join("");
-}
+/* ==========================================
+   LOG LIST
+========================================== */
 
 async function loadLogs() {
-  const query = buildQueryString();
-  const response = await fetch(`${API_BASE}/logs?${query}`);
-  const data = await response.json();
-  
-  state.total = data.total;
-  renderLogsTable(data.items);
-  updateTableMeta();
+
+    try {
+
+        const params = buildFilterQuery();
+
+        const response = await fetch(
+            `${API_BASE_URL}/logs?page=${currentPage}&limit=${currentLimit}${params}`
+        );
+
+        const data = await response.json();
+
+        renderLogsTable(data.item || []);
+
+        updatePagination(data);
+
+        updateLastRefresh();
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function renderLogsTable(logs) {
+
+    const tbody =
+        document.getElementById("logsTableBody");
+
+    tbody.innerHTML = "";
+
+    if (!logs.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8">
+                    No logs found
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    logs.forEach(log => {
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${log.id}</td>
+
+            <td>
+                <span class="${getLevelBadge(log.level)}">
+                    ${log.level}
+                </span>
+            </td>
+
+            <td>${log.service || "-"}</td>
+
+            <td>${log.environment || "-"}</td>
+
+            <td>
+                ${truncate(log.message, 80)}
+            </td>
+
+            <td>
+                ${formatDate(log.emitted_at)}
+            </td>
+
+            <td>
+                <button
+                    class="btn-primary btn-sm"
+                    onclick="viewLog(${log.id})"
+                >
+                    View
+                </button>
+            </td>
+
+            <td>
+                <button
+                    class="btn-primary btn-sm"
+                    onclick="showSimilarLogs(${log.id})"
+                >
+                    Similar
+                </button>
+            </td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
+
+/* ==========================================
+   LOG DETAILS
+========================================== */
+
+async function viewLog(logId) {
+
+    try {
+
+        const response = await fetch(
+            `${API_BASE_URL}/logs/${logId}`
+        );
+
+        const log = await response.json();
+       
+        
+
+        const modalContent =
+            document.getElementById("logDetailsContent");
+
+        modalContent.innerHTML = `
+            <div class="detail-grid">
+
+                <p><strong>ID:</strong> ${log.id}</p>
+
+                <p><strong>Level:</strong> ${log.level}</p>
+
+                <p><strong>Service:</strong> ${log.service}</p>
+
+                <p><strong>Environment:</strong> ${log.environment}</p>
+
+                <p><strong>Host:</strong> ${log.host || "-"}</p>
+
+                <p><strong>Trace ID:</strong> ${log.trace_id || "-"}</p>
+
+                <p><strong>Request ID:</strong> ${log.request_id || "-"}</p>
+
+                <p><strong>Source:</strong> ${log.source || "-"}</p>
+
+                <p>
+                    <strong>Emitted:</strong>
+                    ${formatDate(log.emitted_at)}
+                </p>
+
+                <hr>
+
+                <p>
+                    <strong>Message:</strong><br>
+                    ${log.message}
+                </p>
+
+            </div>
+        `;
+
+        openModal("logDetailsModal");
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+/* ==========================================
+   SIMILAR LOGS
+========================================== */
+
+async function showSimilarLogs(logId) {
+
+    try {
+
+        const response = await fetch(
+            `${API_BASE_URL}/logs/${logId}/similar`
+        );
+
+        const data = await response.json();
+
+        const container =
+            document.getElementById("similarLogsContent");
+
+        container.innerHTML = "";
+
+        const results = data.results || [];
+
+        if (!results.length) {
+
+            container.innerHTML =
+                "<p>No similar logs found.</p>";
+
+            openModal("similarLogsModal");
+
+            return;
+        }
+
+        results.forEach(match => {
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "similar-log-card";
+
+            card.innerHTML = `
+                <div class="similar-header">
+
+                    <strong>
+                        Score:
+                        ${(match.score * 100).toFixed(2)}%
+                    </strong>
+
+                </div>
+
+                <p>
+                    <strong>Level:</strong>
+                    ${match.log.level}
+                </p>
+
+                <p>
+                    <strong>Service:</strong>
+                    ${match.log.service}
+                </p>
+
+                <p class="similar-message">
+                    ${truncate(match.log.message, 200)}
+                </p>
+
+                <div class="similar-meta">
+                    ${match.log.level}
+                    •
+                    ${match.log.service}
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+
+        openModal("similarLogsModal");
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+/* ==========================================
+   FILE UPLOAD
+========================================== */
+
+async function uploadLogs(event) {
+
+    event.preventDefault();
+
+    try {
+
+        const fileInput =
+            document.getElementById("logFile");
+
+        if (!fileInput.files.length) {
+            alert("Please choose a file");
+            return;
+        }
+
+        const formData = new FormData();
+
+        formData.append(
+            "file",
+            fileInput.files[0]
+        );
+
+        const response = await fetch(
+            `${API_BASE_URL}/logs/upload`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const result =
+            await response.json();
+
+        alert(
+            `Uploaded ${result.ingested_count} logs`
+        );
+
+        await Promise.all([
+            loadLogs(),
+            loadSummary(),
+            loadServiceCount()
+        ]);
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+/* ==========================================
+   FILTERS
+========================================== */
+
+function buildFilterQuery() {
+
+    const filters = {
+        level:
+            document.getElementById("levelFilter")?.value,
+        service:
+            document.getElementById("serviceFilter")?.value,
+        environment:
+            document.getElementById("environmentFilter")?.value,
+        keyword:
+            document.getElementById("keywordFilter")?.value
+    };
+
+    let query = "";
+
+    Object.entries(filters).forEach(
+        ([key, value]) => {
+
+            if (value) {
+                query += `&${key}=${encodeURIComponent(value)}`;
+            }
+        }
+    );
+
+    return query;
+}
+
+function clearFilters() {
+
+    [
+        "levelFilter",
+        "serviceFilter",
+        "environmentFilter",
+        "keywordFilter"
+    ].forEach(id => {
+
+        const element =
+            document.getElementById(id);
+
+        if (element) {
+            element.value = "";
+        }
+    });
+
+    currentPage = 1;
+
+    loadLogs();
+}
+
+/* ==========================================
+   PAGINATION
+========================================== */
+
+function updatePagination(data) {
+
+    const currentPageElement =
+        document.getElementById("currentPage");
+
+    const totalRecordsElement =
+        document.getElementById("totalRecords");
+
+    if (currentPageElement) {
+        currentPageElement.textContent =
+            data.page || currentPage;
+    }
+
+    if (totalRecordsElement) {
+        totalRecordsElement.textContent =
+            formatNumber(data.total || 0);
+    }
+}
+
+function previousPage() {
+
+    if (currentPage > 1) {
+
+        currentPage--;
+
+        loadLogs();
+    }
+}
+
+function nextPage() {
+
+    if (currentPage < totalPages) {
+
+        currentPage++;
+
+        loadLogs();
+    }
+}
+
+/* ==========================================
+   UTILITIES
+========================================== */
+
+function refreshPage() {
+
+    loadLogs();
+    loadSummary();
+    loadServiceCount();
+}
+
+function updateLastRefresh() {
+
+    const element =
+        document.getElementById("lastUpdated");
+
+    if (element) {
+        element.textContent =
+            new Date().toLocaleString();
+    }
+}
+
+function formatDate(date) {
+
+    if (!date) return "-";
+
+    return new Date(date)
+        .toLocaleString();
+}
+
+function formatNumber(value) {
+
+    return Number(value || 0)
+        .toLocaleString();
+}
+
+function truncate(text, length) {
+
+    if (!text) return "";
+
+    return text.length > length
+        ? text.substring(0, length) + "..."
+        : text;
+}
+
+function getLevelBadge(level) {
+
+    switch (level) {
+
+        case "ERROR":
+            return "badge badge-error";
+
+        case "WARNING":
+            return "badge badge-warning";
+
+        case "CRITICAL":
+            return "badge badge-critical";
+
+        default:
+            return "badge badge-info";
+    }
+}
+
+/* ==========================================
+   MODALS
+========================================== */
+
+function openModal(id) {
+
+    const modal =
+        document.getElementById(id);
+
+    if (modal) {
+        modal.style.display = "flex";
+    }
+}
+
+function closeModal(id) {
+
+    const modal =
+        document.getElementById(id);
+
+    if (modal) {
+        modal.style.display = "none";
+    }
 }
 
 
-async function loadLogDetails(logId) {
-  const response = await fetch(`${API_BASE}/logs/${logId}`);
-  if (!response.ok) {
-    document.getElementById("detailsState").textContent = "Not found";
-    document.getElementById("logDetails").classList.add("empty-state");
-    document.getElementById("logDetails").textContent = "Could not load log details.";
-    return;
-  }
-  
-  const data = await response.json();
-  state.selectedLogId = logId;
-  renderLogDetails(data);
-}
-
-async function loadSimilarLogs(logId, sameServiceOnly = true) {
-  const query = buildQueryString({
-    candidateLimit: 200,
-    topK: 8,
-    sameServiceOnly,
-    page: 1,
-    limit: state.limit,
-    sortOrder: state.sortOrder,
-  });
-  
-  const response = await fetch(`${API_BASE}/logs/${logId}/similar?${query}`);
-  if (!response.ok) {
-    document.getElementById("similarState").textContent = "Error";
-    document.getElementById("similarLogs").classList.add("empty-state");
-    document.getElementById("similarLogs").textContent = "Could not load similar logs.";
-    return;
-  }
-  
-  const data = await response.json();
-  renderSimilarLogs(data.results);
-}
-
-function resetFilters() {
-  document.getElementById("serviceFilter").value = "";
-  document.getElementById("levelFilter").value = "";
-  document.getElementById("environmentFilter").value = "";
-  document.getElementById("keywordFilter").value = "";
-  document.getElementById("startFilter").value = "";
-  document.getElementById("endFilter").value = "";
-  state.page = 1;
-}
-
-async function initLogsPage() {
-  await loadLogs();
-  document.getElementById("detailsState").textContent = "No log selected";
-  document.getElementById("similarState").textContent = "No results";
-}
-
-document.getElementById("applyFiltersBtn")?.addEventListener("click", async () => {
-  state.page = 1;
-  await loadLogs();
-});
-
-document.getElementById("resetFiltersBtn")?.addEventListener("click", async () => {
-  resetFilters();
-  await loadLogs();
-});
-
-document.getElementById("limitSelect")?.addEventListener("change", async (event) => {
-  state.limit = Number(event.target.value);
-  state.page = 1;
-  await loadLogs();
-});
-
-document.getElementById("sortSelect")?.addEventListener("change", async (event) => {
-  state.sortOrder = event.target.value;
-  state.page = 1;
-  await loadLogs();
-});
-
-document.getElementById("prevPageBtn")?.addEventListener("click", async () => {
-  if (state.page > 1) {
-    state.page -= 1;
-    await loadLogs();
-  }
-});
-
-document.getElementById("nextPageBtn")?.addEventListener("click", async () => {
-  const currentEnd = state.page * state.limit;
-  if (currentEnd < state.total) {
-    state.page += 1;
-    await loadLogs();
-  }
-});
-
-document.getElementById("logsTableBody")?.addEventListener("click", async (event) => {
-  const button = event.target.closest("button[data-action]");
-  if (!button) return;
-  
-  const { action, id } = button.dataset;
-  const logId = Number(id);
-  
-  if (action === "view") {
-    await loadLogDetails(logId);
-  }
-  
-  if (action === "similar") {
-    await loadLogDetails(logId);
-    await loadSimilarLogs(logId, true);
-  }
-});
-
-initLogsPage();
-
+window.viewLog = viewLog;
+window.showSimilarLogs = showSimilarLogs;
+window.closeModal = closeModal;

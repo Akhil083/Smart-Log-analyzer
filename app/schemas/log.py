@@ -41,11 +41,11 @@ class LogCreate(BaseModel):
     
     trace_id : str | None = Field(
                         default= None,
-                        max_length= 120,
+                        max_length= 128,
                         description="Optional Distrubuted tracing id")
     
-    request_id : str | None = Field(
-                        default= None,
+    request_id : str | None = Field(...,
+                        
                         max_length= 128,
                         description="Optional request correlation id")
     

@@ -44,8 +44,9 @@ def start_schedular():
 
     scheduler.add_job(
         run_cleanup,
-        "interval",
-        hours = 24, 
+        "cron",
+        hour=0,
+        minute=0,
         id="cleanup-job",
         replace_existing=True
     )

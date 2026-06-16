@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 
 from app.schemas.analytics import *
+from app.schemas.log import LogFilterParams 
 from app.db.session import get_db_session
 from app.services.analytics_service import AnalyticsServices
 from app.services.semantic_log_search_service import SemanticLogSearchService
@@ -16,16 +17,44 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 # Summary
 @router.get("/summary",response_model=SummaryResponse, summary="Get overall log summary")
-async def get_summary( filters: Annotated[dict, Depends(get_log_filter)],session:AsyncSession = Depends(get_db_session)) -> SummaryResponse :
+async def get_summary( filters: Annotated[LogFilterParams, Depends(get_log_filter)],session:AsyncSession = Depends(get_db_session)) -> SummaryResponse :
 
     service = AnalyticsServices(session)
     result = await service.get_summary(filters=filters)
     return SummaryResponse(**result)
 
 
+@router.get("/warning-count",summary="Get warning log count",)
+async def get_warning_count(filters: Annotated[LogFilterParams,Depends(get_log_filter),],session: AsyncSession = Depends(get_db_session),):
+
+    service = AnalyticsServices(session)
+
+    count = await service.get_warning_count(
+        filters=filters
+    )
+
+    return {
+        "warning_logs": count
+    }
+
+
+@router.get("/critical-count",summary="Get critical log count",)
+async def get_critical_count(filters: Annotated[LogFilterParams,Depends(get_log_filter),],session: AsyncSession = Depends(get_db_session),):
+
+    service = AnalyticsServices(session)
+
+    count = await service.get_critical_count(
+        filters=filters
+    )
+
+    return {
+        "critical_logs": count
+    }
+
+
 #Level
 @router.get("/level",response_model=CountMapResponse, summary="Get log count by level")
-async def get_log_by_level( filters: Annotated[dict, Depends(get_log_filter)],session:AsyncSession = Depends(get_db_session)) -> CountMapResponse :
+async def get_log_by_level( filters: Annotated[LogFilterParams, Depends(get_log_filter)],session:AsyncSession = Depends(get_db_session)) -> CountMapResponse :
 
     service = AnalyticsServices(session)
     result = await service.get_logs_by_level(filters=filters)
@@ -34,7 +63,7 @@ async def get_log_by_level( filters: Annotated[dict, Depends(get_log_filter)],se
 
 #Services
 @router.get("/service", response_model=CountMapResponse,summary="Get log count by services")
-async def get_log_by_service( filters: Annotated[dict, Depends(get_log_filter)],session:AsyncSession = Depends(get_db_session)) -> CountMapResponse  :
+async def get_log_by_service( filters: Annotated[LogFilterParams, Depends(get_log_filter)],session:AsyncSession = Depends(get_db_session)) -> CountMapResponse  :
 
     service = AnalyticsServices(session)
     result = await service.get_logs_by_service(filters=filters)
@@ -42,7 +71,7 @@ async def get_log_by_service( filters: Annotated[dict, Depends(get_log_filter)],
 
 #timeline
 @router.get("/timeline",response_model=TimelineResponse ,summary="Get log timeline")
-async def get_timeline( filters: Annotated[dict, Depends(get_log_filter)],interval: str = "minute",session:AsyncSession = Depends(get_db_session)) -> TimelineResponse :
+async def get_timeline( filters: Annotated[LogFilterParams, Depends(get_log_filter)],interval: str = "minute",session:AsyncSession = Depends(get_db_session)) -> TimelineResponse :
 
     service = AnalyticsServices(session)
     result =  await service.get_timeline(interval,filters=filters)
@@ -120,5 +149,24 @@ async def semantic_search(
     )
 
     return SemanticSearchResponse(
-        result = [to_semantic_result(match) for match in matches]
+        results = [to_semantic_result(match) for match in matches]
     )
+
+
+
+@router.get("/top-error-services",response_model=TopErrorServicesResponse,)
+async def top_error_services(limit: Annotated[int,Query(ge=1, le=20)] = 5,
+    session: AsyncSession = Depends(get_db_session),
+):
+
+    service = AnalyticsServices(session)
+
+    result = await service.get_top_error_services(
+        limit=limit
+    )
+
+    return TopErrorServicesResponse(
+        items=result
+    )
+
+

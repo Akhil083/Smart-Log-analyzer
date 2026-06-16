@@ -42,10 +42,10 @@ class SearchService:
             query = query.where(Log.host == filters.host.strip())
 
         if filters.start_time:
-            query = query.where(Log.start_time >= filters.start_time)
+            query = query.where(Log.emitted_at  >= filters.start_time)
 
         if filters.end_time:
-            query = query.where(Log.end_time <= filters.end_time)
+            query = query.where(Log.emitted_at  <= filters.end_time)
 
         if filters.keyword:
             keyword = filters.keyword.strip()

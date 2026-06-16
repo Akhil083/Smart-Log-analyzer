@@ -2,104 +2,296 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Smart Log Analyzer</title>
-    <link rel="stylesheet" href="../css/common.css" />
-    <link rel="stylesheet" href="../css/home.css" />
+
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/home.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
 
 <body>
-    <div class="app-shell">
-        <aside id="appsidebar"></aside>
 
-        <main class="app-content">
-            <header class="page-header">
-                <div>
-                    <p class="eyebrow">Observability Platform</p>
-                    <h1>Smart Log Analyzer</h1>
-                    <p class="page-subtitle">
-                        Centralize logs, monitor anomalies, inspect similar failures, and review alerts from one
-                        clean operations workspace.
+    <!-- Sidebar -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <h2>SmartLog</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="/" class="active">
+                Dashboard
+            </a>
+
+            <a href="/logs">
+                Logs
+            </a>
+
+            <a href="/analytics">
+                Analytics
+            </a>
+
+            <a href="/alerts">
+                Alerts
+            </a>
+
+            <a href="/settings">
+                Settings
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- Main Content -->
+
+    <main class="main-content">
+
+        <!-- Page Header -->
+
+        <header class="page-header">
+
+            <div>
+                <h1>Smart Log Analyzer Dashboard</h1>
+
+                <p>
+                    Real-time monitoring, analytics, anomaly detection,
+                    clustering and semantic log intelligence.
+                </p>
+            </div>
+
+            <button id="refreshBtn" class="btn-primary">
+                Refresh Data
+            </button>
+
+        </header>
+
+        <!-- Hero Banner -->
+
+        <section class="hero-banner">
+
+            <div class="hero-content">
+
+                <h2>
+                    Centralized Log Intelligence Platform
+                </h2>
+
+                <p>
+                    Monitor system activity, detect anomalies,
+                    analyze service health and investigate incidents
+                    using AI-powered search.
+                </p>
+
+            </div>
+
+        </section>
+
+        <!-- KPI Cards -->
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+                <h3>Total Logs</h3>
+                <span id="totalLogs">--</span>
+            </div>
+
+            <div class="stat-card">
+                <h3>Error Logs</h3>
+                <span id="errorLogs">--</span>
+            </div>
+
+            <div class="stat-card">
+                <h3>Warning Logs</h3>
+                <span id="warningLogs">--</span>
+            </div>
+
+            <div class="stat-card">
+                <h3>Error Rate</h3>
+                <span id="errorRate">--%</span>
+            </div>
+
+        </section>
+
+        <!-- Health Overview -->
+
+        <section class="health-section">
+
+            <div class="section-header">
+                <h2>System Health</h2>
+            </div>
+
+            <div class="health-grid">
+
+                <div class="health-card">
+                    <h3>Services Monitored</h3>
+                    <span id="serviceCount">--</span>
+                </div>
+
+                <div class="health-card">
+                    <h3>Active Alerts</h3>
+                    <span id="activeAlerts">--</span>
+                </div>
+
+                <div class="health-card">
+                    <h3>Critical Logs</h3>
+                    <span id="criticalLogs">--</span>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Dashboard Insights -->
+
+        <section class="dashboard-grid">
+
+            <!-- Active Alerts -->
+
+            <div class="dashboard-card">
+
+                <div class="section-header">
+                    <h2>Recent Alerts</h2>
+                </div>
+
+                <div id="recentAlerts">
+
+                    <div class="empty-state">
+                        No alerts available
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Top Error Services -->
+
+            <div class="dashboard-card">
+
+                <div class="section-header">
+                    <h2>Top Error Services</h2>
+                </div>
+
+                <div id="topServices">
+
+                    <div class="empty-state">
+                        No service data available
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Quick Actions -->
+
+        <section class="quick-actions">
+
+            <div class="section-header">
+                <h2>Quick Actions</h2>
+            </div>
+
+            <div class="action-grid">
+
+                <a href="/logs" class="action-card">
+
+                    <h3>Explore Logs</h3>
+
+                    <p>
+                        Search, filter and inspect logs
+                        across services.
                     </p>
-                </div>
 
-                <div class="header-actions">
-                    <a class="btn btn-primary" href="analytics.html">Open Analytics</a>
-                    <a class="btn btn-secondary" href="logs.html">Explore Logs</a>
-                </div>
-            </header>
-
-            <section class="hero-grid">
-                <article class="hero-card hero-primary">
-                    <div>
-                        <p class="hero-label">What this project does</p>
-                        <h2>Turns raw logs into insights</h2>
-                        <p>
-                            This system collects logs from services and files, stores them centrally, surfaces
-                            analytics,
-                            flags anomalies, groups related failures, and triggers alerts.
-                        </p>
-                    </div>
-                    <div class="hero-badges">
-                        <span>FastAPI</span>
-                        <span>PostgreSQL</span>
-                        <span>AI Features</span>
-                        <span>Scheduled Alerts</span>
-                    </div>
-                </article>
-
-                <article class="hero-card hero-secondary">
-                    <h3>Quick Start</h3>
-                    <ol class="quick-list">
-                        <li>Go to <strong>Analytics</strong> to view trends and anomalies.</li>
-                        <li>Use <strong>Logs</strong> to inspect records and find similar logs.</li>
-                        <li>Open <strong>Alerts</strong> to review triggered incidents.</li>
-                    </ol>
-                </article>
-            </section>
-
-            <section class="feature-grid">
-                <a class="feature-card" href="analytics.html">
-                    <div class="feature-icon">📊</div>
-                    <div>
-                        <h3>Analytics Dashboard</h3>
-                        <p>Summary cards, level distribution, timeline charts, anomaly trends, and clusters.</p>
-                    </div>
                 </a>
 
-                <a class="feature-card" href="logs.html">
-                    <div class="feature-icon">🗒️</div>
-                    <div>
-                        <h3>Logs Explorer</h3>
-                        <p>Filter logs, inspect details, paginate results, and discover similar failures.</p>
-                    </div>
+                <a href="/analytics" class="action-card">
+
+                    <h3>Analytics</h3>
+
+                    <p>
+                        Analyze trends, clusters,
+                        anomalies and patterns.
+                    </p>
+
                 </a>
-                <a class="feature-card" href="alerts.html">
-                    <div class="feature-icon">🚨</div>
-                    <div>
-                        <h3>Alerts Center</h3>
-                        <p>View stored threshold and anomaly alerts, then run manual alert checks when needed.</p>
-                    </div>
+
+                <a href="/alerts" class="action-card">
+
+                    <h3>Alert Center</h3>
+
+                    <p>
+                        Monitor incidents and alert activity.
+                    </p>
+
                 </a>
-            </section>
 
-            <section class="info-grid">
-                <article class="info-card">
-                    <h3>Core Capabilities</h3>
-                    <ul>
-                        <li>Single, bulk, and file-based log ingestion</li>
-                        <li>Search, filtering, pagination, and log drill-down</li>
-                        <li>Counts, timelines, anomaly detection, and clustering</li>
-                        <li>Semantic search and similar-log exploration</li>
-                        <li>Threshold and anomaly-driven alerts with scheduler support</li>
-                    </ul>
-                </article>
+            </div>
 
-            </section>
-        </main>
+        </section>
 
-        <script src="../js/layout.js"></script>
+        <!-- Recent Logs -->
+
+        <section class="recent-activity">
+
+            <div class="section-header">
+                <h2>Recent Logs</h2>
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Time</th>
+                            <th>Level</th>
+                            <th>Service</th>
+                            <th>Message</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="recentLogsBody">
+
+                        <tr>
+                            <td colspan="4">
+                                Loading recent logs...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- Footer -->
+
+        <footer class="page-footer">
+
+            <p>
+                Smart Log Analyzer • AI Powered Monitoring &
+                Analytics Platform
+            </p>
+
+        </footer>
+
+    </main>
+
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/home.js"></script>
+
 </body>
 
 </html>

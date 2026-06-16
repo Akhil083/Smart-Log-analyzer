@@ -3,150 +3,419 @@
 
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Explorer | Smart Log Analyzer</title>
-    <link rel="stylesheet" href="../css/logs.css">
-    <link rel="stylesheet" href="../css/common.css">
+
+    <title>Logs | Smart Log Analyzer</title>
+
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/logs.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
-<body data-page="logs">
-    <div class="app-shell">
-        <aside id="appsidebar"></aside>
-        <main class="app-content">
-            <header class="navbar">
-                <div>
-                    <h1>Smart Log Analyzer</h1>
-                    <p class="subtitle">Search, inspect, and correlate logs</p>
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <h2>SmartLog</h2>
+        </div>
+
+        <nav>
+
+            <a href="/">
+                Dashboard
+            </a>
+
+            <a href="/logs" class="active">
+                Logs
+            </a>
+
+            <a href="/analytics">
+                Analytics
+            </a>
+
+            <a href="/alerts">
+                Alerts
+            </a>
+
+            <a href="/settings">
+                Settings
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+        <!-- PAGE HEADER -->
+
+        <header class="page-header">
+
+            <div>
+
+                <h1>Log Explorer</h1>
+
+                <p>
+                    Search, filter, inspect and analyze system logs.
+                </p>
+
+            </div>
+
+            <div class="header-actions">
+
+                <button id="refreshLogsBtn" class="btn-primary">
+                    Refresh
+                </button>
+
+                <div class="last-refresh">
+                    Last Updated:
+                    <span id="lastUpdated">
+                        --
+                    </span>
                 </div>
-                <nav>
-                    <a href="analytics.html">Analytics</a>
-                    <a href="logs.html" class="active">Logs</a>
-                </nav>
-            </header>
 
-            <section class="page-shell">
-                <section class="filters-card">
-                    <div class="filters-grid">
-                        <div class="filter-group">
-                            <label for="serviceFilter">Service</label>
-                            <input id="serviceFilter" type="text" placeholder="auth-service">
-                        </div>
+            </div>
 
-                        <div class="filter-group">
-                            <label for="levelFilter">Level</label>
-                            <select id="levelFilter">
-                                <option value="">All</option>
-                                <option value="INFO">INFO</option>
-                                <option value="WARNING">WARNING</option>
-                                <option value="ERROR">ERROR</option>
-                                <option value="CRITICAL">CRITICAL</option>
-                            </select>
-                        </div>
+        </header>
 
-                        <div class="filter-group">
-                            <label for="environmentFilter">Environment</label>
-                            <input id="environmentFilter" type="text" placeholder="production">
-                        </div>
+        <!-- OVERVIEW CARDS -->
 
-                        <div class="filter-group">
-                            <label for="keywordFilter">Keyword</label>
-                            <input id="keywordFilter" type="text" placeholder="timeout">
-                        </div>
+        <section class="stats-grid">
 
-                        <div class="filter-group">
-                            <label for="startFilter">Start Time</label>
-                            <input id="startFilter" type="datetime-local">
-                        </div>
+            <div class="stat-card">
+                <h3>Total Logs</h3>
+                <span id="totalLogs">--</span>
+            </div>
 
-                        <div class="filter-group">
-                            <label for="endFilter">End Time</label>
-                            <input id="endFilter" type="datetime-local">
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <h3>Error Logs</h3>
+                <span id="errorLogs">--</span>
+            </div>
 
-                    <div class="filter-actions">
-                        <button id="applyFiltersBtn" class="btn btn-primary">Apply Filters</button>
-                        <button id="resetFiltersBtn" class="btn btn-secondary">Reset</button>
-                    </div>
-                </section>
+            <div class="stat-card">
+                <h3>Warning Logs</h3>
+                <span id="warningLogs">--</span>
+            </div>
 
-                <section class="table-card">
-                    <div class="table-header">
-                        <div>
-                            <h2>Logs</h2>
-                            <p id="tableMeta">Loading logs...</p>
-                        </div>
-                        <div class="table-controls">
-                            <label>
-                                Rows
-                                <select id="limitSelect">
-                                    <option value="10">10</option>
-                                    <option value="20" selected>20</option>
-                                    <option value="50">50</option>
-                                </select>
-                            </label>
-                            <label>
-                                Order
-                                <select id="sortSelect">
-                                    <option value="desc" selected>Newest first</option>
-                                    <option value="asc">Oldest first</option>
-                                </select>
-                            </label>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <h3>Services</h3>
+                <span id="serviceCount">--</span>
+            </div>
 
-                    <div class="table-wrapper">
-                        <table class="logs-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Time</th>
-                                    <th>Level</th>
-                                    <th>Service</th>
-                                    <th>Environment</th>
-                                    <th>Message</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="logsTableBody"></tbody>
-                        </table>
-                    </div>
+            <div class="stat-card">
+                <h3>Critical Logs</h3>
+                <span id="criticalLogs">--</span>
+            </div>
 
-                    <div class="pagination-bar">
-                        <button id="prevPageBtn" class="btn btn-secondary">Previous</button>
-                        <span id="pageIndicator">Page 1</span>
-                        <button id="nextPageBtn" class="btn btn-secondary">Next</button>
-                    </div>
-                </section>
+        </section>
 
-                <section class="details-grid">
+        <!-- FILTERS -->
 
-                    <article class="details-card">
-                        <div class="details-header">
-                            <h2>Log Details</h2>
-                            <span id="detailsState" class="badge">No log selected</span>
-                        </div>
-                        <div id="logDetails" class="details-content empty-state">
-                            Select a log row and click <strong>View</strong> to inspect details.
-                        </div>
-                    </article>
+        <section class="filters-section">
 
-                    <article class="details-card">
-                        <div class="details-header">
-                            <h2>Similar Logs</h2>
-                            <span id="similarState" class="badge">No results</span>
-                        </div>
-                        <div id="similarLogs" class="similar-list empty-state">
-                            Select a log row and click <strong>Similar</strong> to explore related patterns.
-                        </div>
-                    </article>
-                </section>
-            </section>
-        </main>
+            <div class="section-header">
+                <h2>Filter Logs</h2>
+            </div>
+
+            <div class="filter-grid">
+
+                <div class="form-group">
+                    <label>Keyword</label>
+
+                    <input type="text" id="keyword" placeholder="Search message...">
+                </div>
+
+                <div class="form-group">
+                    <label>Level</label>
+
+                    <select id="level">
+
+                        <option value="">
+                            All
+                        </option>
+
+                        <option value="INFO">
+                            INFO
+                        </option>
+
+                        <option value="WARNING">
+                            WARNING
+                        </option>
+
+                        <option value="ERROR">
+                            ERROR
+                        </option>
+
+                        <option value="CRITICAL">
+                            CRITICAL
+                        </option>
+
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Service</label>
+
+                    <input type="text" id="service">
+                </div>
+
+                <div class="form-group">
+                    <label>Environment</label>
+
+                    <input type="text" id="environment">
+                </div>
+
+                <div class="form-group">
+                    <label>Host</label>
+
+                    <input type="text" id="host">
+                </div>
+
+                <div class="form-group">
+                    <label>Trace ID</label>
+
+                    <input type="text" id="traceId">
+                </div>
+
+                <div class="form-group">
+                    <label>Request ID</label>
+
+                    <input type="text" id="requestId">
+                </div>
+
+                <div class="form-group">
+                    <label>Start Time</label>
+
+                    <input type="datetime-local" id="startTime">
+                </div>
+
+                <div class="form-group">
+                    <label>End Time</label>
+
+                    <input type="datetime-local" id="endTime">
+                </div>
+
+                <div class="form-group">
+                    <label>Sort Order</label>
+
+                    <select id="sortOrder">
+
+                        <option value="desc">
+                            Newest First
+                        </option>
+
+                        <option value="asc">
+                            Oldest First
+                        </option>
+
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Page Size</label>
+
+                    <select id="pageSize">
+
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="filter-actions">
+
+                <button id="applyFiltersBtn" class="btn-primary" type="button">
+                    Apply Filters
+                </button>
+
+                <button id="clearFiltersBtn" class="btn-secondary" type="button">
+                    Clear Filters
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- FILE UPLOAD -->
+
+        <section class="upload-section">
+
+            <div class="section-header">
+                <h2>Upload Log File</h2>
+            </div>
+
+            <div class="upload-container">
+
+                <input type="file" id="logFile">
+
+                <button id="uploadBtn" class="btn-primary">
+                    Upload
+                </button>
+
+            </div>
+
+            <div id="uploadResult" class="upload-result"></div>
+
+        </section>
+
+        <!-- SEMANTIC SEARCH -->
+
+        <section class="semantic-search-section">
+
+            <div class="section-header">
+                <h2>AI Semantic Search</h2>
+            </div>
+
+            <div class="semantic-search-container">
+
+                <input type="text" id="semanticQuery" placeholder="Search logs by meaning...">
+
+                <button id="semanticSearchBtn" class="btn-primary">
+                    Search
+                </button>
+
+            </div>
+
+            <div id="semanticResults" class="semantic-results"></div>
+
+        </section>
+
+        <!-- LOG TABLE -->
+
+        <section class="logs-table-section">
+
+            <div class="section-header">
+                <h2>Logs</h2>
+            </div>
+            <div id="logsStatus" class="table-status"></div>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>ID</th>
+                            <th>Timestamp</th>
+                            <th>Level</th>
+                            <th>Service</th>
+                            <th>Message</th>
+                            <th>Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="logsTableBody">
+
+                        <tr>
+                            <td colspan="6">
+                                Loading logs...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- PAGINATION -->
+        <div class="pagination-info">
+            Page <span id="currentPage">1</span>
+            |
+            Total Records: <span id="totalRecords">0</span>
+        </div>
+
+        <section class="pagination-section">
+
+            <button id="prevPageBtn" class="btn-secondary">
+                Previous
+            </button>
+
+            <button id="nextPageBtn" class="btn-secondary">
+                Next
+            </button>
+
+        </section>
+
+    </main>
+
+    <!-- LOG DETAILS MODAL -->
+
+    <div id="logDetailsModal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h2>Log Details</h2>
+
+                <button class="close-modal" id="closeLogModal">
+                    ×
+                </button>
+
+            </div>
+
+            <div id="logDetailsContent" class="log-details-content"></div>
+
+        </div>
+
     </div>
 
-    <script src="../js/logs.js"></script>
-    <script src="../js/layout.js"></script>
+    <!-- SIMILAR LOGS MODAL -->
+
+    <div id="similarLogsModal" class="modal hidden">
+
+        <div class="modal-content large-modal">
+
+            <div class="modal-header">
+
+                <h2>Similar Logs</h2>
+
+                <button class="close-modal" id="closeSimilarModal">
+                    ×
+                </button>
+
+            </div>
+
+            <div class="similar-controls">
+
+                <label>
+
+                    <input type="checkbox" id="sameServiceOnly">
+
+                    Same Service Only
+
+                </label>
+
+            </div>
+
+            <div id="similarLogsContent" class="similar-logs-list">
+
+                Loading...
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/logs.js"></script>
+
 </body>
 
 </html>

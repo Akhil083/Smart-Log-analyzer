@@ -4,6 +4,9 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 from app.core.config import get_settings
 from app.core.scheduler import start_schedular
 from app.api.router import api_router
@@ -51,18 +54,52 @@ def create_application() -> FastAPI:
 
     register_routes(app)
     register_api_router(app)
+    
+
+    app.mount(
+    "/static",
+    StaticFiles(directory="frontend"),
+    name="static",
+)
 
     return app
 
 def register_routes(app : FastAPI) :
+   
     
-    @app.get("/",tags = ["Root"])
-    async def root() -> dict[str,str]:
-        return{
-            "message": f"Welcome to {settings.app_name}",
-            "version" : settings.app_version,
-            "environment" : settings.app_env,
-        }
+    @app.get("/", include_in_schema=False)
+    async def home():
+        return FileResponse(
+            "frontend/pages/index.html"
+        )
+    
+    @app.get("/logs", include_in_schema=False)
+    async def logs_page():
+        return FileResponse(
+            "frontend/pages/logs.html"
+        )
+
+
+    @app.get("/analytics", include_in_schema=False)
+    async def analytics_page():
+        return FileResponse(
+            "frontend/pages/analytics.html"
+        )
+
+
+    @app.get("/alerts", include_in_schema=False)
+    async def alerts_page():
+        return FileResponse(
+            "frontend/pages/alerts.html"
+        )
+
+
+    @app.get("/settings", include_in_schema=False)
+    async def settings_page():
+        return FileResponse(
+            "frontend/pages/settings.html"
+        )
+
     
     @app.get("/health", tags = ["System"])
     async def health_check() -> JSONResponse:
@@ -74,6 +111,8 @@ def register_routes(app : FastAPI) :
                 "version" : settings.app_version,
             },
         )
+    
+    
 
 def register_api_router(app: FastAPI) -> None:
     """
@@ -84,4 +123,5 @@ def register_api_router(app: FastAPI) -> None:
 
 
 app = create_application()
+
 

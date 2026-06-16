@@ -54,8 +54,8 @@ class ClusteringService:
                 n_init="auto",
             )
 
-        feature = self.vectorizer.fit_transform(cleaned_message)
-        cluster_id = self.model.fit_predict(feature)
+        features = self.vectorizer.fit_transform(cleaned_message)
+        cluster_id = self.model.fit_predict(features)
 
         return [
             ClusteredLog(message=message , cluster_id = int(cluster_id))
@@ -86,13 +86,15 @@ class ClusteringService:
             grouped.setdefault(item.cluster_id,[]).append(item.message)
 
         summaries: list[dict] = []
-        for cluster_id, cluster_messages in grouped.item():
+        for cluster_id, cluster_messages in grouped.items():
+            sample = cluster_messages[0]
             summaries.append(
                 {
-                "cluster_id" : cluster_id,
-                "size" : len(cluster_messages),
-                "sample_message" : cluster_messages[0]
-                }
+                    "cluster_id": cluster_id,
+                    "size": len(cluster_messages),
+                    "label": sample[:50],
+                    "sample_message": sample,
+}
             ) 
 
         summaries.sort(key = lambda item: item["size"], reverse=True)

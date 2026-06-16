@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import Query
-from app.schemas.log import LogFilterParams
+from app.schemas.log import LogFilterParams, SortOrder
 
 
 
@@ -22,7 +22,7 @@ def get_log_filter(
         end_time : datetime | None = None,
         page: Annotated[int, Query( ge=1)] = 1,
         limit: Annotated[int, Query( ge=1, le= 100)] = 20,
-        sort_order: Annotated[str, Query( pattern="^(asc|desc)$")] = "desc",
+        sort_order: SortOrder = "desc",
 ) -> LogFilterParams :
      """
      Build log filter parameters from query string input.

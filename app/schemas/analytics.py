@@ -8,9 +8,11 @@ from pydantic import BaseModel , Field, RootModel
 
 #Summary
 class SummaryResponse(BaseModel):
-    total_logs : int
-    error_logs : int
-
+    total_logs: int
+    error_logs: int
+    warning_logs: int
+    critical_logs: int
+    error_rate: float
 
 #Level/ Services
 
@@ -42,7 +44,8 @@ class TimelineAnomalyResponse(BaseModel):
 #cluseter
 class ClusterSummary(BaseModel):
     cluster_id: int
-    size : int
+    size: int
+    label: str
     sample_message: str
 
 
@@ -88,3 +91,12 @@ class SimilarLogResponse(BaseModel):
 
 class SimilarLogsResponses(BaseModel):
     results: list[SimilarLogResponse]
+
+
+class ServiceErrorCount(BaseModel):
+    service: str
+    errors: int
+
+
+class TopErrorServicesResponse(BaseModel):
+    items: list[ServiceErrorCount]

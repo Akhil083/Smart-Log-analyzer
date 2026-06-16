@@ -28,7 +28,7 @@ class IngestionService:
 
     def __init__(self, session:AsyncSession) ->None:
         self.session = session
-
+    
     @classmethod
     def normalize_level(cls, level:str) -> str:
         """Normalizing incoming log levels to uppercase value"""
@@ -68,8 +68,12 @@ class IngestionService:
 
         log = self.build_log_model(payload)
 
-        self.session.add(log)
-        await self.session.commit()
+        try:
+            self.session.add(log)
+            await self.session.commit()
+        except Exception:
+            await self.session.rollback()
+            raise
         await self.session.refresh(log)
 
         return log
@@ -78,11 +82,15 @@ class IngestionService:
     async def create_log_bulk(self , payload : LogBulkCreate) -> list[Log]:
         logs = [self.build_log_model(item) for item in payload.logs]
 
-        self.session.add_all(logs)
-        await self.session.commit()
+        try:
+            self.session.add_all(log)
+            await self.session.commit()
+        except Exception:
+            await self.session.rollback()
+            raise
 
         for log in logs:
-            await self.session.refresh()
+            await self.session.refresh(log)
 
         return logs
     
@@ -94,8 +102,12 @@ class IngestionService:
         if not logs:
             return []
         
-        self.session.add_all(logs)
-        await self.session.commit()
+        try:
+            self.session.add_all(logs)
+            await self.session.commit()
+        except Exception:
+            await self.session.rollback()
+            raise
 
 
         for log in logs:

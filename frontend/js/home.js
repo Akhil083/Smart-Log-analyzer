@@ -247,7 +247,7 @@ async function loadTopServices() {
 
             row.innerHTML = `
                 <span>${item.service}</span>
-                <strong>${item.error_count}</strong>
+                <strong>${formatNumber(item.errors)}</strong>
             `;
 
             container.appendChild(row);

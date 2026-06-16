@@ -178,7 +178,7 @@ async function loadTopServices() {
 
         card.innerHTML = `
             <h4>${item.service}</h4>
-            <span>${item.error_count}</span>
+            <span>${formatNumber(item.errors)}</span>
         `;
 
         container.appendChild(card);

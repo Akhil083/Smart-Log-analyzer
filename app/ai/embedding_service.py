@@ -35,7 +35,7 @@ class EmbeddingService:
         
         vector = self.model.encode(
             cleaned,
-            normalized_embedding=True,
+            normalize_embeddings=True,
             convert_to_numpy=True,
         )
 
@@ -53,7 +53,7 @@ class EmbeddingService:
         vectors = self.model.encode(
             cleaned_texts,
             batch_size = batch_size,
-            normalized_embedding=True,
+            normalize_embeddings=True,
             convert_to_numpy=True,
         )
 

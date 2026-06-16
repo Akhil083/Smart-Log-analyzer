@@ -110,25 +110,36 @@ async def get_clusters(
 
 # Semantic Search 
 
-def to_semantic_result(match) -> SimilarLogResponse:
+def to_semantic_result(match) -> SemanticSearchResult:
     """Convert a semantic log match into an API friendly response dictionary"""
 
-    return SimilarLogResponse (
+    raw_metadata = {}
+    if match.log.log_metadata:
+        if hasattr(match.log.log_metadata, '__dict__'):
+            # Filter out internal SQLAlchemy keys (like _sa_instance_state)
+            raw_metadata = {k: v for k, v in match.log.log_metadata.__dict__.items() if not k.startswith('_')}
+        else:
+            try:
+                raw_metadata = dict(match.log.log_metadata)
+            except (TypeError, ValueError):
+                raw_metadata = {}
+
+    return SemanticSearchResult (
         score = round(match.score, 6),
-        log = {
-            "id" : match.log.id,
-            "emitted_at" :match.log.emitted_at,
-            "ingested_at": match.log.ingested_at,
-            "level":match.log.level,
-            "service": match.log.service,
-            "environment": match.log.environment,
-            "message": match.log.message,
-            "source": match.log.source,
-            "trace_id": match.log.trace_id,
-            "request_id": match.log.request_id,
-            "host": match.log.host,
-            "metadata": match.log.log_metadata,
-        }
+        log = LogBaseResponse (
+            id = match.log.id,
+            emitted_at =match.log.emitted_at,
+            ingested_at= match.log.ingested_at,
+            level=match.log.level,
+            service =match.log.service,
+            environment= match.log.environment,
+            message= match.log.message,
+            source=match.log.source,
+            trace_id= match.log.trace_id,
+            request_id= match.log.request_id,
+            host= match.log.host,
+            metadata= raw_metadata,
+        )
     )
 
 

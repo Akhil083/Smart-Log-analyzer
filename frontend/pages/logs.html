@@ -116,6 +116,46 @@
 
         </section>
 
+        <!-- FILE UPLOAD -->
+
+        <section class="upload-section">
+
+            <div class="section-header">
+                <h2>Upload Log File</h2>
+            </div>
+
+            <div class="upload-card">
+
+                <div class="upload-icon">
+                    📄
+                </div>
+
+                <h3>Upload Logs</h3>
+
+                <p>
+                    Drag & drop your log file here
+                    or select a file manually
+                </p>
+
+                <input type="file" id="logFile" hidden>
+
+                <button type="button" id="selectFileBtn" class="btn-primary">
+                    Choose File
+                </button>
+                <button type="button" id="uploadBtn" class="btn-primary">
+                    Upload Logs
+                </button>
+
+                <div id="selectedFileName">
+                    No file selected
+                </div>
+
+            </div>
+
+            <div id="uploadResult"></div>
+
+        </section>
+
         <!-- FILTERS -->
 
         <section class="filters-section">
@@ -246,49 +286,8 @@
 
         </section>
 
-        <!-- FILE UPLOAD -->
 
-        <section class="upload-section">
 
-            <div class="section-header">
-                <h2>Upload Log File</h2>
-            </div>
-
-            <div class="upload-container">
-
-                <input type="file" id="logFile">
-
-                <button id="uploadBtn" class="btn-primary">
-                    Upload
-                </button>
-
-            </div>
-
-            <div id="uploadResult" class="upload-result"></div>
-
-        </section>
-
-        <!-- SEMANTIC SEARCH -->
-
-        <section class="semantic-search-section">
-
-            <div class="section-header">
-                <h2>AI Semantic Search</h2>
-            </div>
-
-            <div class="semantic-search-container">
-
-                <input type="text" id="semanticQuery" placeholder="Search logs by meaning...">
-
-                <button id="semanticSearchBtn" class="btn-primary">
-                    Search
-                </button>
-
-            </div>
-
-            <div id="semanticResults" class="semantic-results"></div>
-
-        </section>
 
         <!-- LOG TABLE -->
 
@@ -307,11 +306,13 @@
 
                         <tr>
                             <th>ID</th>
-                            <th>Timestamp</th>
                             <th>Level</th>
                             <th>Service</th>
+                            <th>Environment</th>
                             <th>Message</th>
+                            <th>TimeStamp</th>
                             <th>Actions</th>
+                            <th>Similar</th>
                         </tr>
 
                     </thead>

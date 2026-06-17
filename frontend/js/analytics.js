@@ -1,51 +1,49 @@
+let timelineChart = null;
+
 document.addEventListener("DOMContentLoaded", () => {
-    initializeAnalytics();
+  initializeAnalytics();
 
-    document
-        .getElementById("refreshAnalyticsBtn")
-        ?.addEventListener("click", initializeAnalytics);
+  document
+    .getElementById("refreshAnalyticsBtn")
+    ?.addEventListener("click", initializeAnalytics);
 
-    document
-        .getElementById("semanticSearchBtn")
-        ?.addEventListener("click", performSemanticSearch);
+  document
+    .getElementById("semanticSearchBtn")
+    ?.addEventListener("click", performSemanticSearch);
 
-    document
-        .getElementById("runClusterBtn")
-        ?.addEventListener("click", loadClusters);
+  document
+    .getElementById("runClusterBtn")
+    ?.addEventListener("click", loadClusters);
 
-    document
-        .getElementById("timelineInterval")
-        ?.addEventListener("change", loadTimeline);
+  document
+    .getElementById("timelineInterval")
+    ?.addEventListener("change", loadTimeline);
 
-    document
-        .getElementById("applyAnalyticsFiltersBtn")
-        ?.addEventListener("click", initializeAnalytics);
+  document
+    .getElementById("applyAnalyticsFiltersBtn")
+    ?.addEventListener("click", initializeAnalytics);
 
-    document
-        .getElementById("clearAnalyticsFiltersBtn")
-        ?.addEventListener("click", clearFilters);
+  document
+    .getElementById("clearAnalyticsFiltersBtn")
+    ?.addEventListener("click", clearFilters);
 });
 
 async function initializeAnalytics() {
-    try {
+  try {
+    updateLastRefresh();
 
-        updateLastRefresh();
-
-        await Promise.all([
-            loadSummary(),
-            loadWarningCount(),
-            loadCriticalCount(),
-            loadTopServices(),
-            loadLevelDistribution(),
-            loadServiceDistribution(),
-            loadTimeline(),
-            loadAnomalies(),
-            loadClusters()
-        ]);
-
-    } catch (error) {
-        console.error("Analytics initialization failed", error);
-    }
+    await Promise.all([
+      loadSummary(),
+      loadWarningCount(),
+      loadCriticalCount(),
+      loadTimeline(),
+      loadAnomalies(),
+      loadClusters(),
+      loadServiceDistribution(),
+    ]);
+  } catch (error) {
+    console.error("Analytics initialization failed", error);
+  }
 }
 
 /* ======================================================
@@ -53,37 +51,29 @@ async function initializeAnalytics() {
 ====================================================== */
 
 function getFilters() {
+  const params = new URLSearchParams();
 
-    const params = new URLSearchParams();
+  const service = document.getElementById("filterService")?.value;
 
-    const service =
-        document.getElementById("filterService")?.value;
+  const level = document.getElementById("filterLevel")?.value;
 
-    const level =
-        document.getElementById("filterLevel")?.value;
+  const environment = document.getElementById("filterEnvironment")?.value;
 
-    const environment =
-        document.getElementById("filterEnvironment")?.value;
+  if (service) params.append("service", service);
 
-    if (service)
-        params.append("service", service);
+  if (level) params.append("level", level);
 
-    if (level)
-        params.append("level", level);
+  if (environment) params.append("environment", environment);
 
-    if (environment)
-        params.append("environment", environment);
-
-    return params.toString();
+  return params.toString();
 }
 
 function clearFilters() {
+  document.getElementById("filterService").value = "";
+  document.getElementById("filterLevel").value = "";
+  document.getElementById("filterEnvironment").value = "";
 
-    document.getElementById("filterService").value = "";
-    document.getElementById("filterLevel").value = "";
-    document.getElementById("filterEnvironment").value = "";
-
-    initializeAnalytics();
+  initializeAnalytics();
 }
 
 /* ======================================================
@@ -91,20 +81,19 @@ function clearFilters() {
 ====================================================== */
 
 async function loadSummary() {
+  const filters = getFilters();
 
-    const filters = getFilters();
+  const response = await fetch(`${API_BASE_URL}/analytics/summary?${filters}`);
 
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/summary?${filters}`
-    );
+  const data = await response.json();
 
-    const data = await response.json();
+  document.getElementById("totalLogs").textContent = formatNumber(
+    data.total_logs,
+  );
 
-    document.getElementById("totalLogs").textContent =
-        formatNumber(data.total_logs);
-
-    document.getElementById("errorLogs").textContent =
-        formatNumber(data.error_logs);
+  document.getElementById("errorLogs").textContent = formatNumber(
+    data.error_logs,
+  );
 }
 
 /* ======================================================
@@ -112,17 +101,17 @@ async function loadSummary() {
 ====================================================== */
 
 async function loadWarningCount() {
+  const filters = getFilters();
 
-    const filters = getFilters();
+  const response = await fetch(
+    `${API_BASE_URL}/analytics/warning-count?${filters}`,
+  );
 
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/warning-count?${filters}`
-    );
+  const data = await response.json();
 
-    const data = await response.json();
-
-    document.getElementById("warningLogs").textContent =
-        formatNumber(data.warning_logs);
+  document.getElementById("warningLogs").textContent = formatNumber(
+    data.warning_logs,
+  );
 }
 
 /* ======================================================
@@ -130,79 +119,17 @@ async function loadWarningCount() {
 ====================================================== */
 
 async function loadCriticalCount() {
+  const filters = getFilters();
 
-    const filters = getFilters();
+  const response = await fetch(
+    `${API_BASE_URL}/analytics/critical-count?${filters}`,
+  );
 
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/critical-count?${filters}`
-    );
+  const data = await response.json();
 
-    const data = await response.json();
-
-    document.getElementById("criticalLogs").textContent =
-        formatNumber(data.critical_logs);
-}
-
-/* ======================================================
-   TOP SERVICES
-====================================================== */
-
-async function loadTopServices() {
-
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/top-error-services`
-    );
-
-    const data = await response.json();
-
-    const container =
-        document.getElementById("topServicesContainer");
-
-    container.innerHTML = "";
-
-    if (!data.items?.length) {
-
-        container.innerHTML =
-            `<div class="empty-state">
-                No service data available
-            </div>`;
-
-        return;
-    }
-
-    data.items.forEach(item => {
-
-        const card = document.createElement("div");
-
-        card.className = "service-card";
-
-        card.innerHTML = `
-            <h4>${item.service}</h4>
-            <span>${formatNumber(item.errors)}</span>
-        `;
-
-        container.appendChild(card);
-    });
-}
-
-/* ======================================================
-   LEVEL DISTRIBUTION
-====================================================== */
-
-async function loadLevelDistribution() {
-
-    const filters = getFilters();
-
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/level?${filters}`
-    );
-
-    const data = await response.json();
-
-    renderDistribution(
-        "levelDistribution",
-        data
-    );
+  document.getElementById("criticalLogs").textContent = formatNumber(
+    data.critical_logs,
+  );
 }
 
 /* ======================================================
@@ -210,57 +137,92 @@ async function loadLevelDistribution() {
 ====================================================== */
 
 async function loadServiceDistribution() {
+  const filters = getFilters();
 
-    const filters = getFilters();
+  const [serviceResponse, errorResponse] = await Promise.all([
+    fetch(`${API_BASE_URL}/analytics/service?${filters}`),
 
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/service?${filters}`
-    );
+    fetch(`${API_BASE_URL}/analytics/top-error-services?${filters}`),
+  ]);
 
-    const data = await response.json();
+  const serviceData = await serviceResponse.json();
 
-    renderDistribution(
-        "serviceDistribution",
-        data
-    );
+  const errorData = await errorResponse.json();
+
+  const container = document.getElementById("serviceDistribution");
+
+  if (!container) {
+    console.error("serviceDistribution container not found");
+    return;
+  }
+
+  container.innerHTML = "";
+
+  const errorMap = {};
+
+  errorData.items.forEach((item) => {
+    errorMap[item.service] = item.errors;
+  });
+
+  Object.entries(serviceData).forEach(([service, totalLogs]) => {
+    const errors = errorMap[service] || 0;
+
+    const errorRate =
+      totalLogs > 0 ? ((errors / totalLogs) * 100).toFixed(1) : "0.0";
+
+    const card = document.createElement("div");
+
+    card.className = "distribution-card";
+
+    card.innerHTML = `
+    <h4>${service}</h4>
+
+    <div class="service-health-metrics">
+
+        <span class="service-total">
+            ${totalLogs}
+        </span>
+
+        <span class="service-errors">
+            ${errors}
+        </span>
+
+        <span class="service-error-rate">
+            ${errorRate}%
+        </span>
+
+    </div>
+`;
+
+    container.appendChild(card);
+  });
 }
 
-function renderDistribution(
-    containerId,
-    distribution
-) {
+function renderDistribution(containerId, distribution) {
+  const container = document.getElementById(containerId);
 
-    const container =
-        document.getElementById(containerId);
+  container.innerHTML = "";
 
-    container.innerHTML = "";
-
-    if (!distribution) {
-
-        container.innerHTML =
-            `<div class="empty-state">
+  if (!distribution) {
+    container.innerHTML = `<div class="empty-state">
                 No data available
             </div>`;
 
-        return;
-    }
+    return;
+  }
 
-    Object.entries(distribution)
-        .forEach(([key, value]) => {
+  Object.entries(distribution).forEach(([key, value]) => {
+    const card = document.createElement("div");
 
-            const card =
-                document.createElement("div");
+    card.className = "distribution-card";
 
-            card.className =
-                "distribution-card";
-
-            card.innerHTML = `
+    card.innerHTML = `
                 <h4>${key}</h4>
                 <span>${value}</span>
             `;
 
-            container.appendChild(card);
-        });
+    container.appendChild(card);
+  });
 }
 
 /* ======================================================
@@ -268,101 +230,127 @@ function renderDistribution(
 ====================================================== */
 
 async function loadTimeline() {
+  const interval = document.getElementById("timelineInterval").value;
 
-    const interval =
-        document.getElementById(
-            "timelineInterval"
-        ).value;
+  const response = await fetch(
+    `${API_BASE_URL}/analytics/timeline?interval=${interval}`,
+  );
 
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/timeline?interval=${interval}`
-    );
+  const data = await response.json();
 
-    const data = await response.json();
+  const canvas = document.getElementById("timelineChart");
 
-    const body =
-        document.getElementById(
-            "timelineTableBody"
-        );
+  if (!canvas) {
+    console.error("timelineChart not found");
+    return;
+  }
 
-    body.innerHTML = "";
+  const timelineData = data.item || [];
 
-    if (!data.item?.length) {
+  if (!timelineData.length) {
+    return;
+  }
 
-        body.innerHTML =
-            `<tr>
-                <td colspan="2">
-                    No timeline data
-                </td>
-            </tr>`;
+  const labels = timelineData.map((point) => formatDate(point.time));
 
-        return;
-    }
+  const values = timelineData.map((point) => point.total);
+  const errors = timelineData.map((point) => point.errors);
+  const warnings = timelineData.map((point) => point.warnings);
+  const criticals = timelineData.map((point) => point.criticals);
 
-    data.item.forEach(point => {
+  if (timelineChart) {
+    timelineChart.destroy();
+  }
 
-        const row =
-            document.createElement("tr");
+  timelineChart = new Chart(canvas, {
+    type: "line",
 
-        row.innerHTML = `
-            <td>${formatDate(point.time)}</td>
-            <td>${point.total}</td>
-        `;
+    data: {
+      labels,
 
-        body.appendChild(row);
-    });
+      datasets: [
+        {
+          label: "Total Logs",
+          data: values,
+          borderColor: "#2563eb",
+          tension: 0.35,
+        },
+        {
+          label: "Warnings",
+          data: warnings,
+          borderColor: "#f59e0b",
+          tension: 0.35,
+        },
+        {
+          label: "Errors",
+          data: errors,
+          borderColor: "#dc2626",
+          tension: 0.35,
+        },
+        {
+          label: "Critical",
+          data: criticals,
+          borderColor: "#7f1d1d",
+          tension: 0.35,
+        },
+      ],
+    },
+
+    options: {
+      responsive: true,
+
+      maintainAspectRatio: false,
+
+      plugins: {
+        legend: {
+          display: false,
+        },
+      },
+
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
 }
-
 /* ======================================================
    ANOMALIES
 ====================================================== */
 
 async function loadAnomalies() {
+  const response = await fetch(`${API_BASE_URL}/analytics/timeline/anomalies`);
 
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/timeline/anomalies`
-    );
+  const data = await response.json();
 
-    const data = await response.json();
+  const container = document.getElementById("anomalyContainer");
 
-    const container =
-        document.getElementById(
-            "anomalyContainer"
-        );
+  container.innerHTML = "";
 
-    container.innerHTML = "";
+  const anomalies = data.item?.filter((item) => item.anomaly) || [];
 
-    const anomalies =
-        data.item?.filter(
-            item => item.anomaly
-        ) || [];
-
-    if (!anomalies.length) {
-
-        container.innerHTML =
-            `<div class="empty-state">
+  if (!anomalies.length) {
+    container.innerHTML = `<div class="empty-state">
                 No anomalies detected
             </div>`;
 
-        return;
-    }
+    return;
+  }
 
-    anomalies.forEach(item => {
+  anomalies.forEach((item) => {
+    const card = document.createElement("div");
 
-        const card =
-            document.createElement("div");
+    card.className = "anomaly-card";
 
-        card.className =
-            "anomaly-card";
-
-        card.innerHTML = `
+    card.innerHTML = `
             <h4>Anomaly Detected</h4>
             <p>${formatDate(item.time)}</p>
             <strong>${item.total} logs</strong>
         `;
 
-        container.appendChild(card);
-    });
+    container.appendChild(card);
+  });
 }
 
 /* ======================================================
@@ -370,49 +358,34 @@ async function loadAnomalies() {
 ====================================================== */
 
 async function loadClusters() {
+  const limit = document.getElementById("clusterLimit").value;
 
-    const limit =
-        document.getElementById(
-            "clusterLimit"
-        ).value;
+  const nClusters = document.getElementById("clusterCount").value;
 
-    const nClusters =
-        document.getElementById(
-            "clusterCount"
-        ).value;
+  const response = await fetch(
+    `${API_BASE_URL}/analytics/clusters?limit=${limit}&n_clusters=${nClusters}`,
+  );
 
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/clusters?limit=${limit}&n_clusters=${nClusters}`
-    );
+  const data = await response.json();
 
-    const data = await response.json();
+  const container = document.getElementById("clusterResults");
 
-    const container =
-        document.getElementById(
-            "clusterResults"
-        );
+  container.innerHTML = "";
 
-    container.innerHTML = "";
-
-    if (!data.clusters?.length) {
-
-        container.innerHTML =
-            `<div class="empty-state">
+  if (!data.clusters?.length) {
+    container.innerHTML = `<div class="empty-state">
                 No cluster data available
             </div>`;
 
-        return;
-    }
+    return;
+  }
 
-    data.clusters.forEach(cluster => {
+  data.clusters.forEach((cluster) => {
+    const card = document.createElement("div");
 
-        const card =
-            document.createElement("div");
+    card.className = "cluster-card";
 
-        card.className =
-            "cluster-card";
-
-        card.innerHTML = `
+    card.innerHTML = `
             <h4>
                 Cluster ${cluster.cluster_id}
             </h4>
@@ -426,8 +399,8 @@ async function loadClusters() {
             </div>
         `;
 
-        container.appendChild(card);
-    });
+    container.appendChild(card);
+  });
 }
 
 /* ======================================================
@@ -435,65 +408,60 @@ async function loadClusters() {
 ====================================================== */
 
 async function performSemanticSearch() {
+  const query = document.getElementById("semanticQuery").value.trim();
+  const topK = document.getElementById("topK").value;
 
-    const query =
-        document.getElementById(
-            "semanticQuery"
-        ).value.trim();
+  const candidateLimit = document.getElementById("candidateLimit").value;
 
-    if (!query)
-        return;
+  if (!query) return;
 
-    const response = await fetch(
-        `${API_BASE_URL}/analytics/semantic_search?query=${encodeURIComponent(query)}`
-    );
+  const url =
+    `${API_BASE_URL}/analytics/semantic_search` +
+    `?query=${encodeURIComponent(query)}` +
+    `&top_k=${topK}` +
+    `&candidate_limit=${candidateLimit}`;
 
-    const data = await response.json();
+  const response = await fetch(url);
 
-    const container =
-        document.getElementById(
-            "semanticResults"
-        );
+  const data = await response.json();
 
-    container.innerHTML = "";
+  const container = document.getElementById("semanticResults");
 
-    if (!data.results?.length) {
+  container.innerHTML = "";
 
-        container.innerHTML =
-            `<div class="empty-state">
+  if (!data.results?.length) {
+    container.innerHTML = `<div class="empty-state">
                 No matching logs found
             </div>`;
 
-        return;
-    }
+    return;
+  }
 
-    data.results.forEach(result => {
+  data.results.forEach((result) => {
+    const card = document.createElement("div");
 
-        const card =
-            document.createElement("div");
+    card.className = "semantic-result-card";
 
-        card.className =
-            "semantic-result-card";
+    card.innerHTML = `
+    <div class="score">
+        Similarity:
+        ${(result.score * 100).toFixed(2)}%
+    </div>
+    <div class="meta-row">
+        <span>${result.log.service}</span>
+        <span>${result.log.level}</span>
+        <span>Trace: ${result.log.trace_id || "-"}</span>
+        <span>Request: ${result.log.request_id || "-"}</span>
+    </div>
+    <div class="message">
+        ${result.log.message}
+    </div>
 
-        card.innerHTML = `
-            <div class="score">
-                Similarity:
-                ${(result.score * 100).toFixed(2)}%
-            </div>
+    
+`;
 
-            <div class="message">
-                ${result.log.message}
-            </div>
-
-            <div class="meta">
-                ${result.log.service}
-                •
-                ${result.log.level}
-            </div>
-        `;
-
-        container.appendChild(card);
-    });
+    container.appendChild(card);
+  });
 }
 
 /* ======================================================
@@ -501,27 +469,17 @@ async function performSemanticSearch() {
 ====================================================== */
 
 function updateLastRefresh() {
+  const element = document.getElementById("lastUpdated");
 
-    const element =
-        document.getElementById(
-            "lastUpdated"
-        );
-
-    if (element) {
-
-        element.textContent =
-            new Date().toLocaleString();
-    }
+  if (element) {
+    element.textContent = new Date().toLocaleString();
+  }
 }
 
 function formatDate(value) {
-
-    return new Date(value)
-        .toLocaleString();
+  return new Date(value).toLocaleString();
 }
 
 function formatNumber(value) {
-
-    return Number(value)
-        .toLocaleString();
+  return Number(value).toLocaleString();
 }

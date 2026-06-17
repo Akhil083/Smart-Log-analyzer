@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from datetime import datetime
 from typing import Any
 
@@ -14,42 +15,37 @@ class Log(Base):
 
     __table_args__ = (
         Index("ix_logs_service_emitted_at", "service", "emitted_at"),
-        Index("ix_logs_level_emitted_at","level", "emitted_at"),
+        Index("ix_logs_level_emitted_at", "level", "emitted_at"),
     )
 
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
 
-    id: Mapped[int] = mapped_column(
-        BigInteger,
-        Identity(),
-        primary_key = True
-    )
-
-    emitted_at: Mapped[datetime] = mapped_column (
+    emitted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        index= True,
-        doc="Timestamp when the log event was originally emitted by the source system."
+        index=True,
+        doc="Timestamp when the log event was originally emitted by the source system.",
     )
 
     ingested_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
-        doc="Timestamp when this log entry was stored in the Smart Log Analyzer."
+        doc="Timestamp when this log entry was stored in the Smart Log Analyzer.",
     )
 
     service: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
         index=True,
-        doc="Service or application that produced the log entry."
+        doc="Service or application that produced the log entry.",
     )
 
     level: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
         index=True,
-        doc="Normalized log level, eg INFO, WARNING, ERROR."
+        doc="Normalized log level, eg INFO, WARNING, ERROR.",
     )
 
     environment: Mapped[str] = mapped_column(
@@ -67,29 +63,29 @@ class Log(Base):
 
     source: Mapped[str | None] = mapped_column(
         String(100),
-        nullable= True,
-        doc="Optional source identifier such as file name, subsystem or logger name"
+        nullable=True,
+        doc="Optional source identifier such as file name, subsystem or logger name",
     )
 
     trace_id: Mapped[str | None] = mapped_column(
         String(128),
         nullable=True,
         index=True,
-        doc="distributed tracing identifier if available"
-    ) 
+        doc="distributed tracing identifier if available",
+    )
 
     request_id: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
         index=True,
-        doc="Request correlation identifier if available."
+        doc="Request correlation identifier if available.",
     )
 
     host: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
         index=True,
-        doc="Hostname, container name or instance identifier."
+        doc="Hostname, container name or instance identifier.",
     )
 
     log_metadata: Mapped[dict[str, Any]] = mapped_column(
@@ -97,7 +93,7 @@ class Log(Base):
         JSONB,
         nullable=False,
         server_default=text("'{}'::jsonb"),
-        doc="Flexible structured metadata associated with the log entry."
+        doc="Flexible structured metadata associated with the log entry.",
     )
 
     def __repr__(self):
@@ -105,6 +101,3 @@ class Log(Base):
             f"Log(id={self.id!r},level = {self.level!r}, service= {self.service!r}),"
             f"emitted_at={self.emitted_at!r}"
         )
-
-
-

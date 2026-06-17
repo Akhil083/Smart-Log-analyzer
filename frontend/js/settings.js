@@ -1,13 +1,9 @@
-document.addEventListener(
-    "DOMContentLoaded",
-    initializeSettings
-);
+document.addEventListener("DOMContentLoaded", initializeSettings);
 
 function initializeSettings() {
+  loadSettings();
 
-    loadSettings();
-
-    registerEvents();
+  registerEvents();
 }
 
 /* ==========================================
@@ -15,27 +11,17 @@ function initializeSettings() {
 ========================================== */
 
 function registerEvents() {
+  document
+    .getElementById("saveSettingsBtn")
+    ?.addEventListener("click", saveSettings);
 
-    document
-        .getElementById("saveSettingsBtn")
-        ?.addEventListener(
-            "click",
-            saveSettings
-        );
+  document
+    .getElementById("resetSettingsBtn")
+    ?.addEventListener("click", resetSettings);
 
-    document
-        .getElementById("resetSettingsBtn")
-        ?.addEventListener(
-            "click",
-            resetSettings
-        );
-
-    document
-        .getElementById("exportSettingsBtn")
-        ?.addEventListener(
-            "click",
-            exportSettings
-        );
+  document
+    .getElementById("exportSettingsBtn")
+    ?.addEventListener("click", exportSettings);
 }
 
 /* ==========================================
@@ -43,55 +29,25 @@ function registerEvents() {
 ========================================== */
 
 function loadSettings() {
+  const settings = JSON.parse(localStorage.getItem("smartlog_settings")) || {};
 
-    const settings = JSON.parse(
-        localStorage.getItem("smartlog_settings")
-    ) || {};
+  setValue("defaultPageSize", settings.defaultPageSize || 20);
 
-    setValue(
-        "defaultPageSize",
-        settings.defaultPageSize || 20
-    );
+  setValue("autoRefresh", settings.autoRefresh || 60);
 
-    setValue(
-        "autoRefresh",
-        settings.autoRefresh || 60
-    );
+  setValue("timelineInterval", settings.timelineInterval || "minute");
 
-    setValue(
-        "timelineInterval",
-        settings.timelineInterval || "minute"
-    );
+  setValue("errorThreshold", settings.errorThreshold || 50);
 
-    setValue(
-        "errorThreshold",
-        settings.errorThreshold || 50
-    );
+  setValue("warningThreshold", settings.warningThreshold || 100);
 
-    setValue(
-        "warningThreshold",
-        settings.warningThreshold || 100
-    );
+  setValue("criticalThreshold", settings.criticalThreshold || 10);
 
-    setValue(
-        "criticalThreshold",
-        settings.criticalThreshold || 10
-    );
+  setValue("clusterCount", settings.clusterCount || 5);
 
-    setValue(
-        "clusterCount",
-        settings.clusterCount || 5
-    );
+  setValue("clusterLimit", settings.clusterLimit || 200);
 
-    setValue(
-        "clusterLimit",
-        settings.clusterLimit || 200
-    );
-
-    setValue(
-        "semanticLimit",
-        settings.semanticLimit || 10
-    );
+  setValue("semanticLimit", settings.semanticLimit || 10);
 }
 
 /* ==========================================
@@ -99,45 +55,29 @@ function loadSettings() {
 ========================================== */
 
 function saveSettings() {
+  const settings = {
+    defaultPageSize: getValue("defaultPageSize"),
 
-    const settings = {
+    autoRefresh: getValue("autoRefresh"),
 
-        defaultPageSize:
-            getValue("defaultPageSize"),
+    timelineInterval: getValue("timelineInterval"),
 
-        autoRefresh:
-            getValue("autoRefresh"),
+    errorThreshold: getValue("errorThreshold"),
 
-        timelineInterval:
-            getValue("timelineInterval"),
+    warningThreshold: getValue("warningThreshold"),
 
-        errorThreshold:
-            getValue("errorThreshold"),
+    criticalThreshold: getValue("criticalThreshold"),
 
-        warningThreshold:
-            getValue("warningThreshold"),
+    clusterCount: getValue("clusterCount"),
 
-        criticalThreshold:
-            getValue("criticalThreshold"),
+    clusterLimit: getValue("clusterLimit"),
 
-        clusterCount:
-            getValue("clusterCount"),
+    semanticLimit: getValue("semanticLimit"),
+  };
 
-        clusterLimit:
-            getValue("clusterLimit"),
+  localStorage.setItem("smartlog_settings", JSON.stringify(settings));
 
-        semanticLimit:
-            getValue("semanticLimit")
-    };
-
-    localStorage.setItem(
-        "smartlog_settings",
-        JSON.stringify(settings)
-    );
-
-    alert(
-        "Settings saved successfully."
-    );
+  alert("Settings saved successfully.");
 }
 
 /* ==========================================
@@ -145,24 +85,17 @@ function saveSettings() {
 ========================================== */
 
 function resetSettings() {
+  const confirmed = confirm("Reset all settings to defaults?");
 
-    const confirmed = confirm(
-        "Reset all settings to defaults?"
-    );
+  if (!confirmed) {
+    return;
+  }
 
-    if (!confirmed) {
-        return;
-    }
+  localStorage.removeItem("smartlog_settings");
 
-    localStorage.removeItem(
-        "smartlog_settings"
-    );
+  loadSettings();
 
-    loadSettings();
-
-    alert(
-        "Settings reset successfully."
-    );
+  alert("Settings reset successfully.");
 }
 
 /* ==========================================
@@ -170,42 +103,27 @@ function resetSettings() {
 ========================================== */
 
 function exportSettings() {
+  const settings = JSON.parse(localStorage.getItem("smartlog_settings")) || {};
 
-    const settings = JSON.parse(
-        localStorage.getItem("smartlog_settings")
-    ) || {};
+  const blob = new Blob([JSON.stringify(settings, null, 2)], {
+    type: "application/json",
+  });
 
-    const blob = new Blob(
-        [
-            JSON.stringify(
-                settings,
-                null,
-                2
-            )
-        ],
-        {
-            type: "application/json"
-        }
-    );
+  const url = URL.createObjectURL(blob);
 
-    const url =
-        URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
-    const link =
-        document.createElement("a");
+  link.href = url;
 
-    link.href = url;
+  link.download = "smartlog-settings.json";
 
-    link.download =
-        "smartlog-settings.json";
+  document.body.appendChild(link);
 
-    document.body.appendChild(link);
+  link.click();
 
-    link.click();
+  link.remove();
 
-    link.remove();
-
-    URL.revokeObjectURL(url);
+  URL.revokeObjectURL(url);
 }
 
 /* ==========================================
@@ -213,18 +131,13 @@ function exportSettings() {
 ========================================== */
 
 function getValue(id) {
-
-    return document
-        .getElementById(id)
-        ?.value;
+  return document.getElementById(id)?.value;
 }
 
 function setValue(id, value) {
+  const element = document.getElementById(id);
 
-    const element =
-        document.getElementById(id);
-
-    if (element) {
-        element.value = value;
-    }
+  if (element) {
+    element.value = value;
+  }
 }

@@ -1,355 +1,194 @@
 document.addEventListener("DOMContentLoaded", () => {
+  loadDashboard();
 
-    loadDashboard();
+  const refreshBtn = document.getElementById("refreshBtn");
 
-    const refreshBtn =
-        document.getElementById("refreshBtn");
-
-    if (refreshBtn) {
-        refreshBtn.addEventListener(
-            "click",
-            loadDashboard
-        );
-    }
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", loadDashboard);
+  }
 });
 
-
-
 async function loadDashboard() {
-
-    try {
-
-        await Promise.all([
-            loadSummary(),
-            loadWarningCount(),
-            loadCriticalCount(),
-            loadServiceCount(),
-            loadActiveAlertCount(),
-            loadTopServices(),
-            loadRecentAlerts(),
-            loadRecentLogs(),
-        ]);
-
-    } catch (error) {
-
-        console.error(
-            "Dashboard loading failed:",
-            error
-        );
-    }
+  try {
+    await Promise.all([
+      loadSummary(),
+      loadWarningCount(),
+      loadCriticalCount(),
+      loadServiceCount(),
+      loadActiveAlertCount(),
+      loadTopServices(),
+      loadRecentAlerts(),
+      loadRecentLogs(),
+    ]);
+  } catch (error) {
+    console.error("Dashboard loading failed:", error);
+  }
 }
-
-
 
 async function loadSummary() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/analytics/summary`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/analytics/summary`
-        );
+    document.getElementById("totalLogs").textContent = formatNumber(
+      data.total_logs,
+    );
 
-        const data =
-            await response.json();
+    document.getElementById("errorLogs").textContent = formatNumber(
+      data.error_logs,
+    );
 
-        document.getElementById(
-            "totalLogs"
-        ).textContent =
-            formatNumber(
-                data.total_logs
-            );
+    const errorRate =
+      data.total_logs > 0
+        ? ((data.error_logs / data.total_logs) * 100).toFixed(2)
+        : 0;
 
-        document.getElementById(
-            "errorLogs"
-        ).textContent =
-            formatNumber(
-                data.error_logs
-            );
-
-        const errorRate =
-            data.total_logs > 0
-                ? (
-                    (
-                        data.error_logs /
-                        data.total_logs
-                    ) * 100
-                ).toFixed(2)
-                : 0;
-
-        document.getElementById(
-            "errorRate"
-        ).textContent =
-            `${errorRate}%`;
-
-    } catch (error) {
-
-        console.error(
-            "Summary loading failed:",
-            error
-        );
-    }
+    document.getElementById("errorRate").textContent = `${errorRate}%`;
+  } catch (error) {
+    console.error("Summary loading failed:", error);
+  }
 }
-
-
 
 async function loadWarningCount() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/analytics/warning-count`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/analytics/warning-count`
-        );
-
-        const data =
-            await response.json();
-
-        document.getElementById(
-            "warningLogs"
-        ).textContent =
-            formatNumber(
-                data.warning_logs
-            );
-
-    } catch (error) {
-
-        console.error(
-            "Warning count failed:",
-            error
-        );
-    }
+    document.getElementById("warningLogs").textContent = formatNumber(
+      data.warning_logs,
+    );
+  } catch (error) {
+    console.error("Warning count failed:", error);
+  }
 }
-
-
 
 async function loadCriticalCount() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/analytics/critical-count`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/analytics/critical-count`
-        );
-
-        const data =
-            await response.json();
-
-        document.getElementById(
-            "criticalLogs"
-        ).textContent =
-            formatNumber(
-                data.critical_logs
-            );
-
-    } catch (error) {
-
-        console.error(
-            "Critical count failed:",
-            error
-        );
-    }
+    document.getElementById("criticalLogs").textContent = formatNumber(
+      data.critical_logs,
+    );
+  } catch (error) {
+    console.error("Critical count failed:", error);
+  }
 }
-
-
 
 async function loadServiceCount() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/logs/service-count`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/logs/service-count`
-        );
-
-        const data =
-            await response.json();
-
-        document.getElementById(
-            "serviceCount"
-        ).textContent =
-            formatNumber(
-                data.service_count
-            );
-
-    } catch (error) {
-
-        console.error(
-            "Service count failed:",
-            error
-        );
-    }
+    document.getElementById("serviceCount").textContent = formatNumber(
+      data.service_count,
+    );
+  } catch (error) {
+    console.error("Service count failed:", error);
+  }
 }
-
-
 
 async function loadActiveAlertCount() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/alerts/active-count`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/alerts/active-count`
-        );
-
-        const data =
-            await response.json();
-
-        document.getElementById(
-            "activeAlerts"
-        ).textContent =
-            formatNumber(
-                data.active_alerts
-            );
-
-    } catch (error) {
-
-        console.error(
-            "Alert count failed:",
-            error
-        );
-    }
+    document.getElementById("activeAlerts").textContent = formatNumber(
+      data.active_alerts,
+    );
+  } catch (error) {
+    console.error("Alert count failed:", error);
+  }
 }
 
-
-
 async function loadTopServices() {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/analytics/top-error-services`,
+    );
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/analytics/top-error-services`
-        );
+    const container = document.getElementById("topServices");
 
-        const data =
-            await response.json();
+    container.innerHTML = "";
 
-        const container =
-            document.getElementById(
-                "topServices"
-            );
+    if (!data.items || data.items.length === 0) {
+      container.innerHTML = "<p>No service data available.</p>";
 
-        container.innerHTML = "";
+      return;
+    }
 
-        if (
-            !data.items ||
-            data.items.length === 0
-        ) {
+    data.items.forEach((item) => {
+      const row = document.createElement("div");
 
-            container.innerHTML =
-                "<p>No service data available.</p>";
+      row.className = "service-item";
 
-            return;
-        }
-
-        data.items.forEach(item => {
-
-            const row =
-                document.createElement("div");
-
-            row.className =
-                "service-item";
-
-            row.innerHTML = `
+      row.innerHTML = `
                 <span>${item.service}</span>
                 <strong>${formatNumber(item.errors)}</strong>
             `;
 
-            container.appendChild(row);
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Top services failed:",
-            error
-        );
-    }
+      container.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Top services failed:", error);
+  }
 }
 
-
-
 async function loadRecentAlerts() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/alerts?limit=5`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/alerts?limit=5`
-        );
+    const container = document.getElementById("recentAlerts");
 
-        const data =
-            await response.json();
+    container.innerHTML = "";
 
-        const container =
-            document.getElementById(
-                "recentAlerts"
-            );
+    const alerts = data.items || data.item || [];
 
-        container.innerHTML = "";
+    if (alerts.length === 0) {
+      container.innerHTML = "<p>No active alerts.</p>";
 
-        const alerts =
-            data.items ||
-            data.item ||
-            [];
+      return;
+    }
 
-        if (
-            alerts.length === 0
-        ) {
+    alerts.forEach((alert) => {
+      const card = document.createElement("div");
 
-            container.innerHTML =
-                "<p>No active alerts.</p>";
+      card.className = "alert-item";
 
-            return;
-        }
-
-        alerts.forEach(alert => {
-
-            const card =
-                document.createElement("div");
-
-            card.className =
-                "alert-item";
-
-            card.innerHTML = `
+      card.innerHTML = `
                 <h4>${alert.metric}</h4>
                 <p>${alert.message}</p>
                 <small>${alert.service}</small>
             `;
 
-            container.appendChild(card);
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Recent alerts failed:",
-            error
-        );
-    }
+      container.appendChild(card);
+    });
+  } catch (error) {
+    console.error("Recent alerts failed:", error);
+  }
 }
 
-
-
 async function loadRecentLogs() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/logs?limit=5`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/logs?limit=5`
-        );
+    const tableBody = document.getElementById("recentLogsBody");
 
-        const data =
-            await response.json();
+    tableBody.innerHTML = "";
 
-        const tableBody =
-            document.getElementById(
-                "recentLogsBody"
-            );
-
-        tableBody.innerHTML = "";
-
-        if (
-            !data.item ||
-            data.item.length === 0
-        ) {
-
-            tableBody.innerHTML =
-                `
+    if (!data.item || data.item.length === 0) {
+      tableBody.innerHTML = `
                 <tr>
                     <td colspan="4">
                         No logs found
@@ -357,19 +196,15 @@ async function loadRecentLogs() {
                 </tr>
                 `;
 
-            return;
-        }
+      return;
+    }
 
-        data.item.forEach(log => {
+    data.item.forEach((log) => {
+      const row = document.createElement("tr");
 
-            const row =
-                document.createElement("tr");
-
-            row.innerHTML = `
+      row.innerHTML = `
                 <td>
-                    ${formatDate(
-                        log.emitted_at
-                    )}
+                    ${formatDate(log.emitted_at)}
                 </td>
 
                 <td>
@@ -381,58 +216,29 @@ async function loadRecentLogs() {
                 </td>
 
                 <td>
-                    ${truncate(
-                        log.message,
-                        80
-                    )}
+                    ${truncate(log.message, 80)}
                 </td>
             `;
 
-            tableBody.appendChild(row);
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Recent logs failed:",
-            error
-        );
-    }
+      tableBody.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Recent logs failed:", error);
+  }
 }
-
-
 
 function formatDate(dateString) {
-
-    return new Date(
-        dateString
-    ).toLocaleString();
+  return new Date(dateString).toLocaleString();
 }
-
-
 
 function formatNumber(number) {
-
-    return Number(
-        number
-    ).toLocaleString();
+  return Number(number).toLocaleString();
 }
 
+function truncate(text, length) {
+  if (!text) {
+    return "";
+  }
 
-
-function truncate(
-    text,
-    length
-) {
-
-    if (!text) {
-        return "";
-    }
-
-    return text.length > length
-        ? text.substring(
-            0,
-            length
-        ) + "..."
-        : text;
+  return text.length > length ? text.substring(0, length) + "..." : text;
 }

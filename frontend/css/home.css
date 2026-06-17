@@ -1,326 +1,289 @@
 /* ==========================================
-   HOME PAGE
+DASHBOARD PAGE
 ========================================== */
 
 /* ==========================================
-   HERO SECTION
+STICKY HEADER
 ========================================== */
 
-.hero-banner {
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #3b82f6
-    );
-
-    color: white;
-
-    padding: 40px;
-
-    border-radius: var(--radius);
-
-    margin-bottom: 30px;
-
-    box-shadow: var(--shadow-md);
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: white;
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.hero-banner h2 {
-    font-size: 2rem;
-    margin-bottom: 12px;
+.page-header h1 {
+  margin-bottom: 6px;
 }
 
-.hero-banner p {
-    font-size: 1rem;
-    opacity: 0.95;
-
-    max-width: 700px;
-    line-height: 1.6;
+.page-header p {
+  color: var(--text-secondary);
 }
 
 /* ==========================================
-   STATS GRID
+OVERVIEW SECTION
 ========================================== */
 
-.stats-grid {
-    display: grid;
-
-    grid-template-columns: repeat(
-        auto-fit,
-        minmax(220px, 1fr)
-    );
-
-    gap: 20px;
-
-    margin-bottom: 35px;
+.overview-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 30px;
 }
 
-.stat-card {
-    background: white;
-
-    border-radius: var(--radius);
-
-    padding: 24px;
-
-    box-shadow: var(--shadow-sm);
-
-    transition: 0.25s ease;
+.overview-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
 }
 
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-}
-
-.stat-card h3 {
-    color: var(--text-secondary);
-
-    font-size: 0.95rem;
-    font-weight: 500;
-
-    margin-bottom: 12px;
-}
-
-.stat-card span {
-    display: block;
-
-    font-size: 2rem;
-    font-weight: 700;
+.overview-card .section-header {
+  margin-bottom: 20px;
 }
 
 /* ==========================================
-   QUICK ACTIONS
+KPI GRID
 ========================================== */
 
-.quick-actions {
-    margin-bottom: 35px;
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
-.action-grid {
-    display: grid;
-
-    grid-template-columns: repeat(
-        auto-fit,
-        minmax(250px, 1fr)
-    );
-
-    gap: 20px;
+.kpi-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 18px;
 }
 
-.action-card {
-    background: white;
-
-    text-decoration: none;
-    color: inherit;
-
-    padding: 24px;
-
-    border-radius: var(--radius);
-
-    box-shadow: var(--shadow-sm);
-
-    transition: 0.25s ease;
+.kpi-item h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
 }
 
-.action-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-}
-
-.action-card h3 {
-    margin-bottom: 10px;
-}
-
-.action-card p {
-    color: var(--text-secondary);
-    line-height: 1.6;
+.kpi-item span {
+  font-size: 1.8rem;
+  font-weight: 700;
 }
 
 /* ==========================================
-   SYSTEM HEALTH
+HEALTH GRID
 ========================================== */
-
-.health-section {
-    margin-bottom: 35px;
-}
 
 .health-grid {
-    display: grid;
-
-    grid-template-columns: repeat(
-        auto-fit,
-        minmax(220px, 1fr)
-    );
-
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
-.health-card {
-    background: white;
-
-    padding: 24px;
-
-    border-radius: var(--radius);
-
-    box-shadow: var(--shadow-sm);
-
-    transition: 0.25s ease;
+.health-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 18px;
 }
 
-.health-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+.health-item h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
 }
 
-.health-card h3 {
-    color: var(--text-secondary);
-
-    font-size: 0.95rem;
-    font-weight: 500;
-
-    margin-bottom: 12px;
-}
-
-.health-card span {
-    display: block;
-
-    font-size: 1.9rem;
-    font-weight: 700;
+.health-item span {
+  font-size: 1.7rem;
+  font-weight: 700;
 }
 
 /* ==========================================
-   DASHBOARD GRID
+DASHBOARD GRID
 ========================================== */
 
 .dashboard-grid {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 25px;
-
-    margin-bottom: 35px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 30px;
 }
 
-.dashboard-panel {
-    background: white;
+.dashboard-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
 
-    border-radius: var(--radius);
-
-    padding: 24px;
-
-    box-shadow: var(--shadow-sm);
+.dashboard-card .section-header {
+  margin-bottom: 16px;
 }
 
 /* ==========================================
-   TOP SERVICES
+TOP SERVICES
 ========================================== */
-
-.top-services {
-    height: 100%;
-}
 
 #topServices {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.service-card {
+  background: #f8fafc;
+  padding: 14px;
+  border-radius: 10px;
 }
 
 /* ==========================================
-   RECENT ALERTS
+RECENT ALERTS
 ========================================== */
 
-.recent-alerts {
-    height: 100%;
+.alert-section {
+  margin-bottom: 30px;
+}
+
+.alert-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
 }
 
 #recentAlerts {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 220px;
+  overflow-y: auto;
 }
 
 /* ==========================================
-   RECENT ACTIVITY
+RECENT LOGS
 ========================================== */
 
 .recent-activity {
-    margin-bottom: 40px;
+  margin-bottom: 40px;
+}
+
+.table-wrapper {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 /* ==========================================
-   VALUE COLORS
+EMPTY STATES
+========================================== */
+
+.empty-state {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+VALUE COLORS
 ========================================== */
 
 #totalLogs {
-    color: #2563eb;
+  color: #2563eb;
 }
 
 #errorLogs {
-    color: #dc2626;
+  color: #dc2626;
 }
 
 #warningLogs {
-    color: #f59e0b;
+  color: #f59e0b;
 }
 
 #errorRate {
-    color: #7c3aed;
-}
-
-#criticalLogs {
-    color: #991b1b;
-}
-
-#activeAlerts {
-    color: #dc2626;
+  color: #7c3aed;
 }
 
 #serviceCount {
-    color: #16a34a;
+  color: #16a34a;
+}
+
+#activeAlerts {
+  color: #dc2626;
+}
+
+#criticalLogs {
+  color: #991b1b;
 }
 
 /* ==========================================
-   TABLE IMPROVEMENTS
+FOOTER
 ========================================== */
 
-.recent-activity table td {
-    vertical-align: middle;
-}
-
-.recent-activity table td:last-child {
-    white-space: nowrap;
+.page-footer {
+  text-align: center;
+  padding: 25px 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 /* ==========================================
-   RESPONSIVE
+SCROLLBAR
+========================================== */
+
+#topServices::-webkit-scrollbar,
+#recentAlerts::-webkit-scrollbar {
+  width: 8px;
+}
+
+#topServices::-webkit-scrollbar-thumb,
+#recentAlerts::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* ==========================================
+RESPONSIVE
 ========================================== */
 
 @media (max-width: 1200px) {
+  .overview-section {
+    grid-template-columns: 1fr;
+  }
 
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
 
-    .hero-banner {
-        padding: 28px;
-    }
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .hero-banner h2 {
-        font-size: 1.5rem;
-    }
+  .health-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .stat-card span {
-        font-size: 1.7rem;
-    }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .health-card span {
-        font-size: 1.6rem;
-    }
-
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
+  .overview-section {
+    grid-template-columns: 1fr;
+  }
 }

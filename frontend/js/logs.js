@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    initializePage();
+  initializePage();
 });
 
 let currentPage = 1;
@@ -7,13 +7,9 @@ let currentLimit = 20;
 let totalPages = 1;
 
 async function initializePage() {
-    registerEvents();
+  registerEvents();
 
-    await Promise.all([
-        loadLogs(),
-        loadSummary(),
-        loadServiceCount()
-    ]);
+  await Promise.all([loadLogs(), loadSummary(), loadServiceCount()]);
 }
 
 /* ==========================================
@@ -21,33 +17,46 @@ async function initializePage() {
 ========================================== */
 
 function registerEvents() {
+  document
+    .getElementById("refreshLogsBtn")
+    ?.addEventListener("click", refreshPage);
 
-    document
-        .getElementById("refreshLogsBtn")
-        ?.addEventListener("click", refreshPage);
+  document.getElementById("applyFiltersBtn")?.addEventListener("click", () => {
+    currentPage = 1;
+    loadLogs();
+  });
 
-    document
-        .getElementById("applyFiltersBtn")
-        ?.addEventListener("click", () => {
-            currentPage = 1;
-            loadLogs();
-        });
+  document
+    .getElementById("clearFiltersBtn")
+    ?.addEventListener("click", clearFilters);
 
-    document
-        .getElementById("clearFiltersBtn")
-        ?.addEventListener("click", clearFilters);
+  document.getElementById("uploadBtn")?.addEventListener("click", uploadLogs);
 
-    document
-    .getElementById("uploadBtn")
-    ?.addEventListener("click", uploadLogs);
+  document
+    .getElementById("prevPageBtn")
+    ?.addEventListener("click", previousPage);
 
-    document
-        .getElementById("prevPageBtn")
-        ?.addEventListener("click", previousPage);
+  document.getElementById("nextPageBtn")?.addEventListener("click", nextPage);
 
-    document
-        .getElementById("nextPageBtn")
-        ?.addEventListener("click", nextPage);
+  document
+    .getElementById("closeLogModal")
+    ?.addEventListener("click", () => closeModal("logDetailsModal"));
+
+  document
+    .getElementById("closeSimilarModal")
+    ?.addEventListener("click", () => closeModal("similarLogsModal"));
+
+  document.getElementById("selectFileBtn")?.addEventListener("click", () => {
+    document.getElementById("logFile").click();
+  });
+
+  document.getElementById("logFile")?.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+
+    document.getElementById("selectedFileName").textContent = file
+      ? file.name
+      : "No file selected";
+  });
 }
 
 /* ==========================================
@@ -55,46 +64,42 @@ function registerEvents() {
 ========================================== */
 
 async function loadSummary() {
-    try {
+  try {
+    const response = await fetch(`${API_BASE_URL}/analytics/summary`);
 
-        const response = await fetch(
-            `${API_BASE_URL}/analytics/summary`
-        );
+    const data = await response.json();
 
-        const data = await response.json();
+    document.getElementById("totalLogs").textContent = formatNumber(
+      data.total_logs,
+    );
 
-        document.getElementById("totalLogs").textContent =
-            formatNumber(data.total_logs);
+    document.getElementById("errorLogs").textContent = formatNumber(
+      data.error_logs,
+    );
 
-        document.getElementById("errorLogs").textContent =
-            formatNumber(data.error_logs);
+    document.getElementById("warningLogs").textContent = formatNumber(
+      data.warning_logs,
+    );
 
-        document.getElementById("warningLogs").textContent =
-            formatNumber(data.warning_logs);
-
-        document.getElementById("criticalLogs").textContent =
-            formatNumber(data.critical_logs);
-
-    } catch (error) {
-        console.error(error);
-    }
+    document.getElementById("criticalLogs").textContent = formatNumber(
+      data.critical_logs,
+    );
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 async function loadServiceCount() {
-    try {
+  try {
+    const response = await fetch(`${API_BASE_URL}/logs/service-count`);
 
-        const response = await fetch(
-            `${API_BASE_URL}/logs/service-count`
-        );
+    const data = await response.json();
 
-        const data = await response.json();
-
-        document.getElementById("serviceCount").textContent =
-            data.service_count ?? 0;
-
-    } catch (error) {
-        console.error(error);
-    }
+    document.getElementById("serviceCount").textContent =
+      data.service_count ?? 0;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 /* ==========================================
@@ -102,38 +107,32 @@ async function loadServiceCount() {
 ========================================== */
 
 async function loadLogs() {
+  try {
+    const params = buildFilterQuery();
 
-    try {
+    const response = await fetch(
+      `${API_BASE_URL}/logs?page=${currentPage}&limit=${currentLimit}${params}`,
+    );
 
-        const params = buildFilterQuery();
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/logs?page=${currentPage}&limit=${currentLimit}${params}`
-        );
+    renderLogsTable(data.item || []);
 
-        const data = await response.json();
+    updatePagination(data);
 
-        renderLogsTable(data.item || []);
-
-        updatePagination(data);
-
-        updateLastRefresh();
-
-    } catch (error) {
-        console.error(error);
-    }
+    updateLastRefresh();
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function renderLogsTable(logs) {
+  const tbody = document.getElementById("logsTableBody");
 
-    const tbody =
-        document.getElementById("logsTableBody");
+  tbody.innerHTML = "";
 
-    tbody.innerHTML = "";
-
-    if (!logs.length) {
-
-        tbody.innerHTML = `
+  if (!logs.length) {
+    tbody.innerHTML = `
             <tr>
                 <td colspan="8">
                     No logs found
@@ -141,14 +140,13 @@ function renderLogsTable(logs) {
             </tr>
         `;
 
-        return;
-    }
+    return;
+  }
 
-    logs.forEach(log => {
+  logs.forEach((log) => {
+    const row = document.createElement("tr");
 
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
+    row.innerHTML = `
             <td>${log.id}</td>
 
             <td>
@@ -188,8 +186,8 @@ function renderLogsTable(logs) {
             </td>
         `;
 
-        tbody.appendChild(row);
-    });
+    tbody.appendChild(row);
+  });
 }
 
 /* ==========================================
@@ -197,21 +195,14 @@ function renderLogsTable(logs) {
 ========================================== */
 
 async function viewLog(logId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/logs/${logId}`);
 
-    try {
+    const log = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/logs/${logId}`
-        );
+    const modalContent = document.getElementById("logDetailsContent");
 
-        const log = await response.json();
-       
-        
-
-        const modalContent =
-            document.getElementById("logDetailsContent");
-
-        modalContent.innerHTML = `
+    modalContent.innerHTML = `
             <div class="detail-grid">
 
                 <p><strong>ID:</strong> ${log.id}</p>
@@ -245,11 +236,10 @@ async function viewLog(logId) {
             </div>
         `;
 
-        openModal("logDetailsModal");
-
-    } catch (error) {
-        console.error(error);
-    }
+    openModal("logDetailsModal");
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 /* ==========================================
@@ -257,41 +247,31 @@ async function viewLog(logId) {
 ========================================== */
 
 async function showSimilarLogs(logId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/logs/${logId}/similar`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/logs/${logId}/similar`
-        );
+    const container = document.getElementById("similarLogsContent");
 
-        const data = await response.json();
+    container.innerHTML = "";
 
-        const container =
-            document.getElementById("similarLogsContent");
+    const results = data.results || [];
 
-        container.innerHTML = "";
+    if (!results.length) {
+      container.innerHTML = "<p>No similar logs found.</p>";
 
-        const results = data.results || [];
+      openModal("similarLogsModal");
 
-        if (!results.length) {
+      return;
+    }
 
-            container.innerHTML =
-                "<p>No similar logs found.</p>";
+    results.forEach((match) => {
+      const card = document.createElement("div");
 
-            openModal("similarLogsModal");
+      card.className = "similar-log-card";
 
-            return;
-        }
-
-        results.forEach(match => {
-
-            const card =
-                document.createElement("div");
-
-            card.className =
-                "similar-log-card";
-
-            card.innerHTML = `
+      card.innerHTML = `
                 <div class="similar-header">
 
                     <strong>
@@ -322,14 +302,13 @@ async function showSimilarLogs(logId) {
                 </div>
             `;
 
-            container.appendChild(card);
-        });
+      container.appendChild(card);
+    });
 
-        openModal("similarLogsModal");
-
-    } catch (error) {
-        console.error(error);
-    }
+    openModal("similarLogsModal");
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 /* ==========================================
@@ -337,50 +316,33 @@ async function showSimilarLogs(logId) {
 ========================================== */
 
 async function uploadLogs(event) {
+  event.preventDefault();
 
-    event.preventDefault();
+  try {
+    const fileInput = document.getElementById("logFile");
 
-    try {
-
-        const fileInput =
-            document.getElementById("logFile");
-
-        if (!fileInput.files.length) {
-            alert("Please choose a file");
-            return;
-        }
-
-        const formData = new FormData();
-
-        formData.append(
-            "file",
-            fileInput.files[0]
-        );
-
-        const response = await fetch(
-            `${API_BASE_URL}/logs/upload`,
-            {
-                method: "POST",
-                body: formData
-            }
-        );
-
-        const result =
-            await response.json();
-
-        alert(
-            `Uploaded ${result.ingested_count} logs`
-        );
-
-        await Promise.all([
-            loadLogs(),
-            loadSummary(),
-            loadServiceCount()
-        ]);
-
-    } catch (error) {
-        console.error(error);
+    if (!fileInput.files.length) {
+      alert("Please choose a file");
+      return;
     }
+
+    const formData = new FormData();
+
+    formData.append("file", fileInput.files[0]);
+
+    const response = await fetch(`${API_BASE_URL}/logs/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    alert(`Uploaded ${result.ingested_count} logs`);
+
+    await Promise.all([loadLogs(), loadSummary(), loadServiceCount()]);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 /* ==========================================
@@ -388,52 +350,68 @@ async function uploadLogs(event) {
 ========================================== */
 
 function buildFilterQuery() {
+  const filters = {
+    keyword: document.getElementById("keyword")?.value,
 
-    const filters = {
-        level:
-            document.getElementById("levelFilter")?.value,
-        service:
-            document.getElementById("serviceFilter")?.value,
-        environment:
-            document.getElementById("environmentFilter")?.value,
-        keyword:
-            document.getElementById("keywordFilter")?.value
-    };
+    level: document.getElementById("level")?.value,
 
-    let query = "";
+    service: document.getElementById("service")?.value,
 
-    Object.entries(filters).forEach(
-        ([key, value]) => {
+    environment: document.getElementById("environment")?.value,
 
-            if (value) {
-                query += `&${key}=${encodeURIComponent(value)}`;
-            }
-        }
-    );
+    host: document.getElementById("host")?.value,
 
-    return query;
+    trace_id: document.getElementById("traceId")?.value,
+
+    request_id: document.getElementById("requestId")?.value,
+
+    start_time: document.getElementById("startTime")?.value,
+
+    end_time: document.getElementById("endTime")?.value,
+
+    sort_order: document.getElementById("sortOrder")?.value,
+  };
+
+  currentLimit = parseInt(document.getElementById("pageSize")?.value || 20);
+
+  let query = "";
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== "") {
+      query += `&${key}=${encodeURIComponent(value)}`;
+    }
+  });
+
+  return query;
 }
 
 function clearFilters() {
+  [
+    "keyword",
+    "level",
+    "service",
+    "environment",
+    "host",
+    "traceId",
+    "requestId",
+    "startTime",
+    "endTime",
+  ].forEach((id) => {
+    const element = document.getElementById(id);
 
-    [
-        "levelFilter",
-        "serviceFilter",
-        "environmentFilter",
-        "keywordFilter"
-    ].forEach(id => {
+    if (element) {
+      element.value = "";
+    }
+  });
 
-        const element =
-            document.getElementById(id);
+  document.getElementById("sortOrder").value = "desc";
 
-        if (element) {
-            element.value = "";
-        }
-    });
+  document.getElementById("pageSize").value = "20";
 
-    currentPage = 1;
+  currentLimit = 20;
+  currentPage = 1;
 
-    loadLogs();
+  loadLogs();
 }
 
 /* ==========================================
@@ -441,42 +419,35 @@ function clearFilters() {
 ========================================== */
 
 function updatePagination(data) {
+  totalPages = data.pages || Math.ceil((data.total || 0) / currentLimit);
 
-    const currentPageElement =
-        document.getElementById("currentPage");
+  const currentPageElement = document.getElementById("currentPage");
 
-    const totalRecordsElement =
-        document.getElementById("totalRecords");
+  const totalRecordsElement = document.getElementById("totalRecords");
 
-    if (currentPageElement) {
-        currentPageElement.textContent =
-            data.page || currentPage;
-    }
+  if (currentPageElement) {
+    currentPageElement.textContent = data.page || currentPage;
+  }
 
-    if (totalRecordsElement) {
-        totalRecordsElement.textContent =
-            formatNumber(data.total || 0);
-    }
+  if (totalRecordsElement) {
+    totalRecordsElement.textContent = formatNumber(data.total || 0);
+  }
 }
 
 function previousPage() {
+  if (currentPage > 1) {
+    currentPage--;
 
-    if (currentPage > 1) {
-
-        currentPage--;
-
-        loadLogs();
-    }
+    loadLogs();
+  }
 }
 
 function nextPage() {
+  if (currentPage < totalPages) {
+    currentPage++;
 
-    if (currentPage < totalPages) {
-
-        currentPage++;
-
-        loadLogs();
-    }
+    loadLogs();
+  }
 }
 
 /* ==========================================
@@ -484,62 +455,49 @@ function nextPage() {
 ========================================== */
 
 function refreshPage() {
-
-    loadLogs();
-    loadSummary();
-    loadServiceCount();
+  loadLogs();
+  loadSummary();
+  loadServiceCount();
 }
 
 function updateLastRefresh() {
+  const element = document.getElementById("lastUpdated");
 
-    const element =
-        document.getElementById("lastUpdated");
-
-    if (element) {
-        element.textContent =
-            new Date().toLocaleString();
-    }
+  if (element) {
+    element.textContent = new Date().toLocaleString();
+  }
 }
 
 function formatDate(date) {
+  if (!date) return "-";
 
-    if (!date) return "-";
-
-    return new Date(date)
-        .toLocaleString();
+  return new Date(date).toLocaleString();
 }
 
 function formatNumber(value) {
-
-    return Number(value || 0)
-        .toLocaleString();
+  return Number(value || 0).toLocaleString();
 }
 
 function truncate(text, length) {
+  if (!text) return "";
 
-    if (!text) return "";
-
-    return text.length > length
-        ? text.substring(0, length) + "..."
-        : text;
+  return text.length > length ? text.substring(0, length) + "..." : text;
 }
 
 function getLevelBadge(level) {
+  switch (level) {
+    case "ERROR":
+      return "badge badge-error";
 
-    switch (level) {
+    case "WARNING":
+      return "badge badge-warning";
 
-        case "ERROR":
-            return "badge badge-error";
+    case "CRITICAL":
+      return "badge badge-critical";
 
-        case "WARNING":
-            return "badge badge-warning";
-
-        case "CRITICAL":
-            return "badge badge-critical";
-
-        default:
-            return "badge badge-info";
-    }
+    default:
+      return "badge badge-info";
+  }
 }
 
 /* ==========================================
@@ -547,25 +505,20 @@ function getLevelBadge(level) {
 ========================================== */
 
 function openModal(id) {
+  const modal = document.getElementById(id);
 
-    const modal =
-        document.getElementById(id);
-
-    if (modal) {
-        modal.style.display = "flex";
-    }
+  if (modal) {
+    modal.style.display = "flex";
+  }
 }
 
 function closeModal(id) {
+  const modal = document.getElementById(id);
 
-    const modal =
-        document.getElementById(id);
-
-    if (modal) {
-        modal.style.display = "none";
-    }
+  if (modal) {
+    modal.style.display = "none";
+  }
 }
-
 
 window.viewLog = viewLog;
 window.showSimilarLogs = showSimilarLogs;

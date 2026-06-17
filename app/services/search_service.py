@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from sqlalchemy import select, Select, func
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.log import Log
 from app.schemas.log import LogFilterParams
-
 
 
 class SearchService:
@@ -13,12 +12,13 @@ class SearchService:
     Service responsible for querying and filtering logs.
     """
 
-    def __init__(self, session: AsyncSession) ->None:
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-
     @staticmethod
-    def apply_filters(query: Select[tuple[Log]], filters : LogFilterParams) -> Select[tuple[Log]] :
+    def apply_filters(
+        query: Select[tuple[Log]], filters: LogFilterParams
+    ) -> Select[tuple[Log]]:
         """
         Apply dynamic filter to SQLAlchemy query
         """
@@ -42,10 +42,10 @@ class SearchService:
             query = query.where(Log.host == filters.host.strip())
 
         if filters.start_time:
-            query = query.where(Log.emitted_at  >= filters.start_time)
+            query = query.where(Log.emitted_at >= filters.start_time)
 
         if filters.end_time:
-            query = query.where(Log.emitted_at  <= filters.end_time)
+            query = query.where(Log.emitted_at <= filters.end_time)
 
         if filters.keyword:
             keyword = filters.keyword.strip()
@@ -54,33 +54,30 @@ class SearchService:
 
         return query
 
-
-
-
     @staticmethod
-    def apply_sorting(query: Select[tuple[Log]], filters: LogFilterParams) -> Select[tuple[Log]] :
+    def apply_sorting(
+        query: Select[tuple[Log]], filters: LogFilterParams
+    ) -> Select[tuple[Log]]:
         """
         Apply sorting to the query based on the filter preferences
         """
 
         if filters.sort_order == "asc":
             return query.order_by(Log.emitted_at.asc())
-        
+
         return query.order_by(Log.emitted_at.desc())
-    
 
     @staticmethod
-    def apply_pagination(query: Select[tuple[Log]], filters: LogFilterParams) -> Select[tuple[Log]] :
+    def apply_pagination(
+        query: Select[tuple[Log]], filters: LogFilterParams
+    ) -> Select[tuple[Log]]:
         """
         Apply offset/limit pagination to the query
         """
-        offset = (filters.page - 1 )*filters.limit
-        return  query.offset(offset).limit(filters.limit)
+        offset = (filters.page - 1) * filters.limit
+        return query.offset(offset).limit(filters.limit)
 
-
-
-    
-    async def get_logs(self, filters: LogFilterParams) ->tuple[list[Log],int]:
+    async def get_logs(self, filters: LogFilterParams) -> tuple[list[Log], int]:
         """
         Fetch filtered logs with pagination
         return:
@@ -94,18 +91,14 @@ class SearchService:
         total_result = await self.session.execute(count_query)
         total = total_result.scalars().one()
 
-
         paginated_query = self.apply_pagination(
-            self.apply_sorting(filtered_query,filters),
-            filters
+            self.apply_sorting(filtered_query, filters), filters
         )
 
         result = await self.session.execute(paginated_query)
         logs = result.scalars().all()
 
-
         return logs, total
-
 
     async def get_log_by_id(self, log_id: int) -> Log | None:
         """
@@ -115,8 +108,3 @@ class SearchService:
         query = select(Log).where(Log.id == log_id)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
-    
-    
-    
-        
-

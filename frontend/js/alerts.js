@@ -1,19 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
-    initializeAlertsPage();
+  initializeAlertsPage();
 });
 
 let currentFilters = {};
 
 async function initializeAlertsPage() {
-    registerEvents();
+  registerEvents();
 
-    await Promise.all([
-        loadAlertStatistics(),
-        loadAlerts(),
-        loadRecentAlertsFeed()
-    ]);
+  await Promise.all([
+    loadAlertStatistics(),
+    loadAlerts(),
+    loadRecentAlertsFeed(),
+  ]);
 
-    updateLastRefreshTime();
+  updateLastRefreshTime();
 }
 
 /* ==========================================
@@ -21,22 +21,21 @@ async function initializeAlertsPage() {
 ========================================== */
 
 function registerEvents() {
+  document
+    .getElementById("refreshAlertsBtn")
+    .addEventListener("click", refreshPage);
 
-    document
-        .getElementById("refreshAlertsBtn")
-        .addEventListener("click", refreshPage);
+  document
+    .getElementById("applyFiltersBtn")
+    .addEventListener("click", applyFilters);
 
-    document
-        .getElementById("applyFiltersBtn")
-        .addEventListener("click", applyFilters);
+  document
+    .getElementById("clearFiltersBtn")
+    .addEventListener("click", clearFilters);
 
-    document
-        .getElementById("clearFiltersBtn")
-        .addEventListener("click", clearFilters);
-
-    document
-        .getElementById("alertCheckForm")
-        .addEventListener("submit", runAlertCheck);
+  document
+    .getElementById("alertCheckForm")
+    .addEventListener("submit", runAlertCheck);
 }
 
 /* ==========================================
@@ -44,14 +43,13 @@ function registerEvents() {
 ========================================== */
 
 async function refreshPage() {
+  await Promise.all([
+    loadAlertStatistics(),
+    loadAlerts(),
+    loadRecentAlertsFeed(),
+  ]);
 
-    await Promise.all([
-        loadAlertStatistics(),
-        loadAlerts(),
-        loadRecentAlertsFeed()
-    ]);
-
-    updateLastRefreshTime();
+  updateLastRefreshTime();
 }
 
 /* ==========================================
@@ -59,65 +57,52 @@ async function refreshPage() {
 ========================================== */
 
 async function loadAlertStatistics() {
+  try {
+    const alertsResponse = await fetch(`${API_BASE_URL}/alerts?limit=500`);
+
+    const alertsData = await alertsResponse.json();
+
+    const alerts = alertsData.items || [];
+
+    document.getElementById("totalAlerts").textContent = formatNumber(
+      alertsData.total || alerts.length,
+    );
+
+    let criticalCount = 0;
+    let highCount = 0;
+
+    alerts.forEach((alert) => {
+      if (alert.severity === "CRITICAL") {
+        criticalCount++;
+      }
+
+      if (alert.severity === "HIGH") {
+        highCount++;
+      }
+    });
+
+    document.getElementById("criticalAlerts").textContent =
+      formatNumber(criticalCount);
+
+    document.getElementById("highSeverityAlerts").textContent =
+      formatNumber(highCount);
 
     try {
+      const activeResponse = await fetch(`${API_BASE_URL}/alerts/active-count`);
 
-        const alertsResponse = await fetch(
-            `${API_BASE_URL}/alerts?limit=500`
-        );
+      const activeData = await activeResponse.json();
 
-        const alertsData = await alertsResponse.json();
-
-        const alerts =
-            alertsData.items || [];
-
-        document.getElementById("totalAlerts").textContent =
-            formatNumber(alertsData.total || alerts.length);
-
-        let criticalCount = 0;
-        let highCount = 0;
-
-        alerts.forEach(alert => {
-
-            if (alert.severity === "CRITICAL") {
-                criticalCount++;
-            }
-
-            if (alert.severity === "HIGH") {
-                highCount++;
-            }
-        });
-
-        document.getElementById("criticalAlerts").textContent =
-            formatNumber(criticalCount);
-
-        document.getElementById("highSeverityAlerts").textContent =
-            formatNumber(highCount);
-
-        try {
-
-            const activeResponse = await fetch(
-                `${API_BASE_URL}/alerts/active-count`
-            );
-
-            const activeData = await activeResponse.json();
-
-            document.getElementById("activeAlerts").textContent =
-                formatNumber(activeData.active_alerts);
-
-        } catch {
-
-            document.getElementById("activeAlerts").textContent =
-                formatNumber(alerts.length);
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Failed to load alert statistics",
-            error
-        );
+      document.getElementById("activeAlerts").textContent = formatNumber(
+        activeData.active_alerts,
+      );
+    } catch {
+      document.getElementById("activeAlerts").textContent = formatNumber(
+        alerts.length,
+      );
     }
+  } catch (error) {
+    console.error("Failed to load alert statistics", error);
+  }
 }
 
 /* ==========================================
@@ -125,38 +110,25 @@ async function loadAlertStatistics() {
 ========================================== */
 
 async function loadAlerts() {
+  try {
+    const query = new URLSearchParams();
 
-    try {
+    Object.entries(currentFilters).forEach(([key, value]) => {
+      if (value) {
+        query.append(key, value);
+      }
+    });
 
-        const query = new URLSearchParams();
+    query.append("limit", "500");
 
-        Object.entries(currentFilters)
-            .forEach(([key, value]) => {
+    const response = await fetch(`${API_BASE_URL}/alerts?${query.toString()}`);
 
-                if (value) {
-                    query.append(key, value);
-                }
-            });
+    const data = await response.json();
 
-        query.append("limit", "500");
-
-        const response = await fetch(
-            `${API_BASE_URL}/alerts?${query.toString()}`
-        );
-
-        const data = await response.json();
-
-        renderAlertsTable(
-            data.items || []
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Failed to load alerts",
-            error
-        );
-    }
+    renderAlertsTable(data.items || []);
+  } catch (error) {
+    console.error("Failed to load alerts", error);
+  }
 }
 
 /* ==========================================
@@ -164,15 +136,12 @@ async function loadAlerts() {
 ========================================== */
 
 function renderAlertsTable(alerts) {
+  const tbody = document.getElementById("alertsTableBody");
 
-    const tbody =
-        document.getElementById("alertsTableBody");
+  tbody.innerHTML = "";
 
-    tbody.innerHTML = "";
-
-    if (!alerts.length) {
-
-        tbody.innerHTML = `
+  if (!alerts.length) {
+    tbody.innerHTML = `
             <tr>
                 <td colspan="8">
                     No alerts found
@@ -180,15 +149,13 @@ function renderAlertsTable(alerts) {
             </tr>
         `;
 
-        return;
-    }
+    return;
+  }
 
-    alerts.forEach(alert => {
+  alerts.forEach((alert) => {
+    const row = document.createElement("tr");
 
-        const row =
-            document.createElement("tr");
-
-        row.innerHTML = `
+    row.innerHTML = `
             <td>${alert.id}</td>
             <td>${alert.service}</td>
             <td>${alert.metric}</td>
@@ -211,8 +178,8 @@ function renderAlertsTable(alerts) {
             </td>
         `;
 
-        tbody.appendChild(row);
-    });
+    tbody.appendChild(row);
+  });
 }
 
 /* ==========================================
@@ -220,40 +187,29 @@ function renderAlertsTable(alerts) {
 ========================================== */
 
 async function loadRecentAlertsFeed() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/alerts?limit=5`);
 
-    try {
+    const data = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/alerts?limit=5`
-        );
+    const alerts = data.items || [];
 
-        const data = await response.json();
+    const container = document.getElementById("recentAlertsFeed");
 
-        const alerts =
-            data.items || [];
+    container.innerHTML = "";
 
-        const container =
-            document.getElementById("recentAlertsFeed");
+    if (!alerts.length) {
+      container.innerHTML = `<p>No recent alerts.</p>`;
 
-        container.innerHTML = "";
+      return;
+    }
 
-        if (!alerts.length) {
+    alerts.forEach((alert) => {
+      const item = document.createElement("div");
 
-            container.innerHTML =
-                `<p>No recent alerts.</p>`;
+      item.className = "alert-feed-item";
 
-            return;
-        }
-
-        alerts.forEach(alert => {
-
-            const item =
-                document.createElement("div");
-
-            item.className =
-                "alert-feed-item";
-
-            item.innerHTML = `
+      item.innerHTML = `
                 <div class="alert-feed-header">
 
                     <span class="badge ${getSeverityClass(alert.severity)}">
@@ -273,16 +229,11 @@ async function loadRecentAlertsFeed() {
                 </small>
             `;
 
-            container.appendChild(item);
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Failed to load alert feed",
-            error
-        );
-    }
+      container.appendChild(item);
+    });
+  } catch (error) {
+    console.error("Failed to load alert feed", error);
+  }
 }
 
 /* ==========================================
@@ -290,51 +241,34 @@ async function loadRecentAlertsFeed() {
 ========================================== */
 
 async function runAlertCheck(event) {
+  event.preventDefault();
 
-    event.preventDefault();
+  try {
+    const threshold = document.getElementById("threshold").value;
 
-    try {
+    const service = document.getElementById("service").value;
 
-        const threshold =
-            document.getElementById("threshold").value;
+    const interval = document.getElementById("interval").value;
 
-        const service =
-            document.getElementById("service").value;
+    const params = new URLSearchParams();
 
-        const interval =
-            document.getElementById("interval").value;
+    params.append("threshold", threshold);
 
-        const params =
-            new URLSearchParams();
+    params.append("interval", interval);
 
-        params.append(
-            "threshold",
-            threshold
-        );
+    if (service) {
+      params.append("service", service);
+    }
 
-        params.append(
-            "interval",
-            interval
-        );
+    const response = await fetch(
+      `${API_BASE_URL}/alerts/check?${params.toString()}`,
+    );
 
-        if (service) {
-            params.append(
-                "service",
-                service
-            );
-        }
+    const result = await response.json();
 
-        const response = await fetch(
-            `${API_BASE_URL}/alerts/check?${params.toString()}`
-        );
+    const container = document.getElementById("alertCheckResult");
 
-        const result =
-            await response.json();
-
-        const container =
-            document.getElementById("alertCheckResult");
-
-        container.innerHTML = `
+    container.innerHTML = `
             <div class="success-message">
                 Alert evaluation completed.
                 Triggered:
@@ -344,20 +278,16 @@ async function runAlertCheck(event) {
             </div>
         `;
 
-        await refreshPage();
+    await refreshPage();
+  } catch (error) {
+    console.error(error);
 
-    } catch (error) {
-
-        console.error(error);
-
-        document.getElementById(
-            "alertCheckResult"
-        ).innerHTML = `
+    document.getElementById("alertCheckResult").innerHTML = `
             <div class="error-message">
                 Failed to run alert evaluation.
             </div>
         `;
-    }
+  }
 }
 
 /* ==========================================
@@ -365,46 +295,27 @@ async function runAlertCheck(event) {
 ========================================== */
 
 function applyFilters() {
+  currentFilters = {
+    service: document.getElementById("filterService").value.trim(),
 
-    currentFilters = {
-        service:
-            document
-                .getElementById("filterService")
-                .value
-                .trim(),
+    metric: document.getElementById("filterMetric").value.trim(),
 
-        metric:
-            document
-                .getElementById("filterMetric")
-                .value
-                .trim(),
+    severity: document.getElementById("filterSeverity").value,
+  };
 
-        severity:
-            document
-                .getElementById("filterSeverity")
-                .value
-    };
-
-    loadAlerts();
+  loadAlerts();
 }
 
 function clearFilters() {
+  document.getElementById("filterService").value = "";
 
-    document.getElementById(
-        "filterService"
-    ).value = "";
+  document.getElementById("filterMetric").value = "";
 
-    document.getElementById(
-        "filterMetric"
-    ).value = "";
+  document.getElementById("filterSeverity").value = "";
 
-    document.getElementById(
-        "filterSeverity"
-    ).value = "";
+  currentFilters = {};
 
-    currentFilters = {};
-
-    loadAlerts();
+  loadAlerts();
 }
 
 /* ==========================================
@@ -412,52 +323,38 @@ function clearFilters() {
 ========================================== */
 
 function updateLastRefreshTime() {
-
-    document.getElementById(
-        "lastUpdated"
-    ).textContent =
-        new Date().toLocaleString();
+  document.getElementById("lastUpdated").textContent =
+    new Date().toLocaleString();
 }
 
 function formatDate(dateString) {
-
-    return new Date(
-        dateString
-    ).toLocaleString();
+  return new Date(dateString).toLocaleString();
 }
 
 function formatNumber(number) {
-
-    return Number(
-        number
-    ).toLocaleString();
+  return Number(number).toLocaleString();
 }
 
 function truncate(text, length) {
+  if (!text) {
+    return "";
+  }
 
-    if (!text) {
-        return "";
-    }
-
-    return text.length > length
-        ? text.substring(0, length) + "..."
-        : text;
+  return text.length > length ? text.substring(0, length) + "..." : text;
 }
 
 function getSeverityClass(severity) {
+  switch (severity) {
+    case "CRITICAL":
+      return "badge-critical";
 
-    switch (severity) {
+    case "HIGH":
+      return "badge-error";
 
-        case "CRITICAL":
-            return "badge-critical";
+    case "MEDIUM":
+      return "badge-warning";
 
-        case "HIGH":
-            return "badge-error";
-
-        case "MEDIUM":
-            return "badge-warning";
-
-        default:
-            return "badge-info";
-    }
+    default:
+      return "badge-info";
+  }
 }

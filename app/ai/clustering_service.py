@@ -1,4 +1,4 @@
-from __future__ import annotations 
+from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -8,32 +8,31 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 @dataclass(slots=True)
 class ClusteredLog:
-    """Represent a log message assigned to a cluster """
+    """Represent a log message assigned to a cluster"""
 
-    message : str
+    message: str
     cluster_id: int
 
 
 class ClusteringService:
     def __init__(
-            self,
-            n_clusters : int = 5,
-            max_feature : int = 2000,
-            random_state: int = 42,
-    ) :
+        self,
+        n_clusters: int = 5,
+        max_feature: int = 2000,
+        random_state: int = 42,
+    ):
         self.n_clusters = n_clusters
         self.vectorizer = TfidfVectorizer(
             lowercase=True,
             stop_words="english",
-            ngram_range=(1,2),
-            max_features=max_feature
+            ngram_range=(1, 2),
+            max_features=max_feature,
         )
         self.model = MiniBatchKMeans(
             n_clusters=n_clusters,
             random_state=random_state,
             n_init="auto",
         )
-
 
     def cluster_messages(self, messages: list[str]):
         """Cluster input log messages and assign a cluster ID to each message"""
@@ -42,10 +41,10 @@ class ClusteringService:
 
         if not cleaned_message:
             return []
-        
+
         if len(cleaned_message) < self.n_clusters:
-            #Avoid invalid clustering configuration when the message count 
-            #is smaller than the requested number of cluster
+            # Avoid invalid clustering configuration when the message count
+            # is smaller than the requested number of cluster
 
             adjusted_cluster_count = max(1, len(cleaned_message))
             self.model = MiniBatchKMeans(
@@ -58,10 +57,9 @@ class ClusteringService:
         cluster_id = self.model.fit_predict(features)
 
         return [
-            ClusteredLog(message=message , cluster_id = int(cluster_id))
-            for message, cluster_id in zip(cleaned_message,cluster_id,strict = True)
+            ClusteredLog(message=message, cluster_id=int(cluster_id))
+            for message, cluster_id in zip(cleaned_message, cluster_id, strict=True)
         ]
-    
 
     def get_cluster_summary(self, messages: list[str]):
         """
@@ -80,10 +78,10 @@ class ClusteringService:
 
         if not clustered_logs:
             return []
-        
-        grouped : dict[int, list[str]] = {}
+
+        grouped: dict[int, list[str]] = {}
         for item in clustered_logs:
-            grouped.setdefault(item.cluster_id,[]).append(item.message)
+            grouped.setdefault(item.cluster_id, []).append(item.message)
 
         summaries: list[dict] = []
         for cluster_id, cluster_messages in grouped.items():
@@ -94,8 +92,8 @@ class ClusteringService:
                     "size": len(cluster_messages),
                     "label": sample[:50],
                     "sample_message": sample,
-}
-            ) 
+                }
+            )
 
-        summaries.sort(key = lambda item: item["size"], reverse=True)
+        summaries.sort(key=lambda item: item["size"], reverse=True)
         return summaries

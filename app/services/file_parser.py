@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import json
-from typing import Iterable
-
-from app.schemas.log import LogCreate
 
 
 class FileParse:
@@ -19,7 +16,6 @@ class FileParse:
             raise ValueError("Expected JSON array")
 
         return data
-    
 
     @staticmethod
     @staticmethod
@@ -35,7 +31,6 @@ class FileParse:
             logs.append(json.loads(line))
 
         return logs
-    
 
     @classmethod
     def parse(cls, content: str):
@@ -45,6 +40,5 @@ class FileParse:
 
         if content.startswith("["):
             return cls.parse_json(content)
-        
-        return cls.parse_json_line(content)
 
+        return cls.parse_json_line(content)

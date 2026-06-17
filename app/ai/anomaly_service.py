@@ -13,7 +13,7 @@ class AnomalyService:
             random_state=42,
         )
 
-    def detect(self, values: list[int]) ->list:
+    def detect(self, values: list[int]) -> list:
         """
         Detect anomaly points
         Returns:
@@ -22,12 +22,11 @@ class AnomalyService:
 
         if not values:
             return []
-        
+
         if len(values) < 5:
             return [1] * len(values)
-        
+
         data = np.array(values).reshape(-1, 1)
         self.model.fit(data)
-        
+
         return self.model.predict(data)
-    

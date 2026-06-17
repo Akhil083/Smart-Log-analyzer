@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -11,6 +12,7 @@
     <link rel="stylesheet" href="/static/css/alerts.css">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
 
 <body>
@@ -24,6 +26,7 @@
         </div>
 
         <nav>
+
             <a href="/">
                 Dashboard
             </a>
@@ -43,24 +46,27 @@
             <a href="/settings">
                 Settings
             </a>
+
         </nav>
 
     </aside>
 
-    <!-- MAIN -->
+    <!-- MAIN CONTENT -->
 
     <main class="main-content">
 
-        <!-- HEADER -->
+        <!-- STICKY HEADER -->
 
         <header class="page-header">
 
             <div>
+
                 <h1>Alert Monitoring</h1>
 
                 <p>
                     Monitor triggered alerts, anomalies and system incidents.
                 </p>
+
             </div>
 
             <div class="header-actions">
@@ -82,88 +88,127 @@
 
         </header>
 
-        <!-- ALERT OVERVIEW -->
+        <!-- OVERVIEW SECTION -->
 
-        <section class="stats-grid">
+        <section class="overview-section">
 
-            <div class="stat-card">
-                <h3>Total Alerts</h3>
-                <span id="totalAlerts">--</span>
-            </div>
+            <!-- ALERT OVERVIEW -->
 
-            <div class="stat-card">
-                <h3>Active Alerts</h3>
-                <span id="activeAlerts">--</span>
-            </div>
+            <div class="overview-card">
 
-            <div class="stat-card">
-                <h3>Critical Alerts</h3>
-                <span id="criticalAlerts">--</span>
-            </div>
+                <div class="section-header">
+                    <h2>Alert Overview</h2>
+                </div>
 
-            <div class="stat-card">
-                <h3>High Severity</h3>
-                <span id="highSeverityAlerts">--</span>
-            </div>
+                <div class="kpi-grid">
 
-        </section>
-
-        <!-- ALERT CONTROLS -->
-
-        <section class="controls-section">
-
-            <div class="section-header">
-                <h2>Trigger Alert Evaluation</h2>
-            </div>
-
-            <form id="alertCheckForm">
-
-                <div class="filter-grid">
-
-                    <div class="form-group">
-                        <label>Threshold</label>
-
-                        <input type="number" id="threshold" value="50" min="1">
+                    <div class="kpi-item">
+                        <h3>Total Alerts</h3>
+                        <span id="totalAlerts">--</span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Service</label>
-
-                        <input type="text" id="service" placeholder="Optional">
+                    <div class="kpi-item">
+                        <h3>Active Alerts</h3>
+                        <span id="activeAlerts">--</span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Interval</label>
+                    <div class="kpi-item">
+                        <h3>Critical Alerts</h3>
+                        <span id="criticalAlerts">--</span>
+                    </div>
 
-                        <select id="interval">
-
-                            <option value="minute">
-                                Minute
-                            </option>
-
-                            <option value="hour">
-                                Hour
-                            </option>
-
-                            <option value="day">
-                                Day
-                            </option>
-
-                        </select>
+                    <div class="kpi-item">
+                        <h3>High Severity</h3>
+                        <span id="highSeverityAlerts">--</span>
                     </div>
 
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    Run Alert Check
-                </button>
+            </div>
 
-            </form>
-            <div id="alertCheckResult" class="alert-check-result"></div>
+            <!-- ALERT EVALUATION -->
+
+            <div class="overview-card">
+
+                <div class="section-header">
+                    <h2>Trigger Alert Evaluation</h2>
+                </div>
+
+                <form id="alertCheckForm">
+
+                    <div class="filter-grid">
+
+                        <div class="form-group">
+
+                            <label>Threshold</label>
+
+                            <input type="number" id="threshold" value="50" min="1">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>Service</label>
+
+                            <input type="text" id="service" placeholder="Optional">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>Interval</label>
+
+                            <select id="interval">
+
+                                <option value="minute">
+                                    Minute
+                                </option>
+
+                                <option value="hour">
+                                    Hour
+                                </option>
+
+                                <option value="day">
+                                    Day
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        Run Alert Check
+                    </button>
+
+                </form>
+
+                <div id="alertCheckResult" class="alert-check-result"></div>
+
+            </div>
+
+        </section>
+
+        <!-- RECENT ALERT MESSAGES -->
+
+        <section class="recent-alerts">
+
+            <div class="section-header">
+                <h2>Recent Alert Messages</h2>
+            </div>
+
+            <div class="alert-feed" id="recentAlertsFeed">
+
+                Loading...
+
+            </div>
 
         </section>
 
         <!-- FILTERS -->
+
+
 
         <section class="filters-section">
 
@@ -171,65 +216,53 @@
                 <h2>Filter Alerts</h2>
             </div>
 
-            <div class="filter-grid">
+            <div class="filters-row">
 
-                <div class="form-group">
-                    <label>Service</label>
+                <div class="filter-grid">
 
-                    <input type="text" id="filterService">
-                </div>
+                    <div class="form-group">
+                        <label>Service</label>
+                        <input type="text" id="filterService">
+                    </div>
 
-                <div class="form-group">
-                    <label>Metric</label>
+                    <div class="form-group">
+                        <label>Metric</label>
+                        <input type="text" id="filterMetric">
+                    </div>
 
-                    <input type="text" id="filterMetric">
-                </div>
+                    <div class="form-group">
+                        <label>Severity</label>
 
-                <div class="form-group">
-                    <label>Severity</label>
-
-                    <select id="filterSeverity">
-
-                        <option value="">
-                            All
-                        </option>
-
-                        <option value="LOW">
-                            LOW
-                        </option>
-
-                        <option value="MEDIUM">
-                            MEDIUM
-                        </option>
-
-                        <option value="HIGH">
-                            HIGH
-                        </option>
-
-                        <option value="CRITICAL">
-                            CRITICAL
-                        </option>
-
-                    </select>
+                        <select id="filterSeverity">
+                            <option value="">All</option>
+                            <option value="LOW">LOW</option>
+                            <option value="MEDIUM">MEDIUM</option>
+                            <option value="HIGH">HIGH</option>
+                            <option value="CRITICAL">CRITICAL</option>
+                        </select>
+                    </div>
 
                 </div>
 
-            </div>
+                <div class="filter-actions">
 
-            <div class="filter-actions">
+                    <button type="button" id="applyFiltersBtn" class="btn-primary">
+                        Apply
+                    </button>
 
-                <button type="button" id="applyFiltersBtn" class="btn-primary">
-                    Apply Filters
-                </button>
-                <button type="button" id="clearFiltersBtn" class="btn-secondary">
-                    Clear Filters
-                </button>
+                    <button type="button" id="clearFiltersBtn" class="btn-secondary">
+                        Clear
+                    </button>
+
+                </div>
 
             </div>
 
         </section>
 
-        <!-- ALERTS TABLE -->
+        </section>
+
+        <!-- STORED ALERTS -->
 
         <section class="alerts-table-section">
 
@@ -259,30 +292,16 @@
                     <tbody id="alertsTableBody">
 
                         <tr>
+
                             <td colspan="8">
                                 Loading alerts...
                             </td>
+
                         </tr>
 
                     </tbody>
 
                 </table>
-
-            </div>
-
-        </section>
-
-        <!-- RECENT ALERTS -->
-
-        <section class="recent-alerts">
-
-            <div class="section-header">
-                <h2>Recent Alert Messages</h2>
-            </div>
-
-            <div class="alert-feed" id="recentAlertsFeed">
-
-                Loading...
 
             </div>
 

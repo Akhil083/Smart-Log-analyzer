@@ -1,12 +1,12 @@
-from  __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel , Field, RootModel
+from pydantic import BaseModel, Field, RootModel
 
 
-#Summary
+# Summary
 class SummaryResponse(BaseModel):
     total_logs: int
     error_logs: int
@@ -14,34 +14,40 @@ class SummaryResponse(BaseModel):
     critical_logs: int
     error_rate: float
 
-#Level/ Services
+
+# Level/ Services
+
 
 class CountMapResponse(RootModel[dict[str, int]]):
     pass
 
-#Timeline
+
+# Timeline
 class TimelinePoint(BaseModel):
     time: datetime
     total: int
     errors: int
+    warnings: int
+    criticals: int
 
 
 class TimelineResponse(BaseModel):
-    item : list[TimelinePoint]
+    item: list[TimelinePoint]
 
 
-#Timeline with Anomalies
+# Timeline with Anomalies
 class TimelineAnomalyPoint(BaseModel):
     time: datetime
     total: int
     errors: int
-    anomaly : bool
+    anomaly: bool
+
 
 class TimelineAnomalyResponse(BaseModel):
-    item : list[TimelineAnomalyPoint]
+    item: list[TimelineAnomalyPoint]
 
 
-#cluseter
+# cluseter
 class ClusterSummary(BaseModel):
     cluster_id: int
     size: int
@@ -50,44 +56,47 @@ class ClusterSummary(BaseModel):
 
 
 class ClusterResponse(BaseModel):
-    clusters : list[ClusterSummary]
+    clusters: list[ClusterSummary]
 
 
+# Semantic Search
 
-#Semantic Search
 
 class LogMetadata(RootModel[dict[str, Any]]):
     pass
 
 
 class LogBaseResponse(BaseModel):
-    id : int
+    id: int
     emitted_at: datetime
     ingested_at: datetime
     level: str
     service: str
     environment: str
     message: str
-    source: str |None = None
+    source: str | None = None
     trace_id: str | None = None
     request_id: str | None = None
     host: str | None = None
-    metadata: dict[str,Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class SemanticSearchResult(BaseModel):
-    score: float = Field(...,description = "Semantic similarity score")
+    score: float = Field(..., description="Semantic similarity score")
     log: LogBaseResponse
 
 
 class SemanticSearchResponse(BaseModel):
     results: list[SemanticSearchResult]
 
-#Similar Logs
+
+# Similar Logs
+
 
 class SimilarLogResponse(BaseModel):
-    score : float
+    score: float
     log: LogBaseResponse
+
 
 class SimilarLogsResponses(BaseModel):
     results: list[SimilarLogResponse]

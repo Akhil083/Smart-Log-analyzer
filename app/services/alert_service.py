@@ -1,27 +1,25 @@
 from __future__ import annotations
 
-from sqlalchemy import insert, select, func 
 from datetime import datetime, timedelta
+
+from sqlalchemy import func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.alert import Alert
-from app.services.analytics_service import AnalyticsServices
 from app.schemas.log import LogFilterParams
-
+from app.services.analytics_service import AnalyticsServices
 
 
 class AlertService:
-
     def __init__(self, session: AsyncSession):
         self.session = session
         self.analysis = AnalyticsServices(session)
 
-    
     async def check_error_threshold(
-    self,
-    threshold: int = 50,
-    service: str | None = None,
-):
+        self,
+        threshold: int = 50,
+        service: str | None = None,
+    ):
         """
         Check if error count exceeds threshold.
         """
@@ -31,9 +29,7 @@ class AlertService:
         if service:
             filters = LogFilterParams(service=service)
 
-        summary = await self.analysis.get_summary(
-            filters=filters
-        )
+        summary = await self.analysis.get_summary(filters=filters)
 
         error_count = summary["error_logs"]
 
@@ -68,28 +64,18 @@ class AlertService:
             await self._create_alert(alert)
 
         return [alert]
-                    
-        
-    
-
 
     async def check_anomaly_alerts(
-    self,
-    interval: str = "minute",
-):
+        self,
+        interval: str = "minute",
+    ):
         """
         Detect anomaly spikes in recent log traffic.
         """
 
-        timeline = await self.analysis.get_timeline_with_anomalies(
-            interval=interval
-        )
+        timeline = await self.analysis.get_timeline_with_anomalies(interval=interval)
 
-        anomalies = [
-            point
-            for point in timeline[-5:]
-            if point["anomaly"]
-        ]
+        anomalies = [point for point in timeline[-5:] if point["anomaly"]]
 
         if not anomalies:
             return []
@@ -97,7 +83,6 @@ class AlertService:
         alerts = []
 
         for anomaly in anomalies:
-
             total_logs = anomaly["total"]
 
             severity = "HIGH"
@@ -112,9 +97,7 @@ class AlertService:
                 "threshold": 1,
                 "value": total_logs,
                 "message": (
-                    f"Anomaly detected at "
-                    f"{anomaly['time']} "
-                    f"with {total_logs} logs"
+                    f"Anomaly detected at {anomaly['time']} with {total_logs} logs"
                 ),
             }
 
@@ -129,19 +112,22 @@ class AlertService:
             alerts.append(alert)
 
         return alerts
-        
-    
 
-
-    async def list_alerts(self, service: str |None = None, metric: str |None = None, limit: int = 100,   severity: str | None = None,):
+    async def list_alerts(
+        self,
+        service: str | None = None,
+        metric: str | None = None,
+        limit: int = 100,
+        severity: str | None = None,
+    ):
         stmt = select(Alert)
         count_stmt = select(func.count()).select_from(Alert)
 
-        if service: 
+        if service:
             stmt = stmt.where(Alert.service == service)
             count_stmt = count_stmt.where(Alert.service == service)
 
-        if metric: 
+        if metric:
             stmt = stmt.where(Alert.metric == metric)
             count_stmt = count_stmt.where(Alert.metric == metric)
 
@@ -149,9 +135,8 @@ class AlertService:
             stmt = stmt.where(Alert.severity == severity)
             count_stmt = count_stmt.where(Alert.severity == severity)
 
-
         stmt = stmt.order_by(Alert.created_at.desc()).limit(limit)
-        
+
         result = await self.session.execute(stmt)
         items = result.scalars().all()
 
@@ -160,18 +145,14 @@ class AlertService:
 
         return items, total
 
-
-
     async def _alert_recently_created(
-    self,
-    service: str,
-    metric: str,
-    cooldown_minutes: int = 15,
-) -> bool:
+        self,
+        service: str,
+        metric: str,
+        cooldown_minutes: int = 15,
+    ) -> bool:
 
-        cutoff = datetime.utcnow() - timedelta(
-            minutes=cooldown_minutes
-        )
+        cutoff = datetime.utcnow() - timedelta(minutes=cooldown_minutes)
 
         stmt = (
             select(Alert)
@@ -185,27 +166,15 @@ class AlertService:
 
         return result.scalar_one_or_none() is not None
 
-
     async def get_active_alert_count(self) -> int:
         stmt = select(func.count()).select_from(Alert)
 
         result = await self.session.execute(stmt)
 
         return result.scalar_one()
-        
 
     async def _create_alert(self, alert_data: dict):
 
         stmt = insert(Alert).values(**alert_data)
         await self.session.execute(stmt)
         await self.session.commit()
-
-
-
-
-            
-
-
-
-
-

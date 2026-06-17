@@ -55,17 +55,19 @@
 
     <main class="main-content">
 
-        <!-- Page Header -->
+        <!-- Sticky Header -->
 
         <header class="page-header">
 
             <div>
+
                 <h1>Smart Log Analyzer Dashboard</h1>
 
                 <p>
                     Real-time monitoring, analytics, anomaly detection,
                     clustering and semantic log intelligence.
                 </p>
+
             </div>
 
             <button id="refreshBtn" class="btn-primary">
@@ -74,104 +76,85 @@
 
         </header>
 
-        <!-- Hero Banner -->
+        <!-- KPI + HEALTH OVERVIEW -->
 
-        <section class="hero-banner">
+        <section class="overview-section">
 
-            <div class="hero-content">
+            <!-- LOG STATISTICS -->
 
-                <h2>
-                    Centralized Log Intelligence Platform
-                </h2>
-
-                <p>
-                    Monitor system activity, detect anomalies,
-                    analyze service health and investigate incidents
-                    using AI-powered search.
-                </p>
-
-            </div>
-
-        </section>
-
-        <!-- KPI Cards -->
-
-        <section class="stats-grid">
-
-            <div class="stat-card">
-                <h3>Total Logs</h3>
-                <span id="totalLogs">--</span>
-            </div>
-
-            <div class="stat-card">
-                <h3>Error Logs</h3>
-                <span id="errorLogs">--</span>
-            </div>
-
-            <div class="stat-card">
-                <h3>Warning Logs</h3>
-                <span id="warningLogs">--</span>
-            </div>
-
-            <div class="stat-card">
-                <h3>Error Rate</h3>
-                <span id="errorRate">--%</span>
-            </div>
-
-        </section>
-
-        <!-- Health Overview -->
-
-        <section class="health-section">
-
-            <div class="section-header">
-                <h2>System Health</h2>
-            </div>
-
-            <div class="health-grid">
-
-                <div class="health-card">
-                    <h3>Services Monitored</h3>
-                    <span id="serviceCount">--</span>
-                </div>
-
-                <div class="health-card">
-                    <h3>Active Alerts</h3>
-                    <span id="activeAlerts">--</span>
-                </div>
-
-                <div class="health-card">
-                    <h3>Critical Logs</h3>
-                    <span id="criticalLogs">--</span>
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- Dashboard Insights -->
-
-        <section class="dashboard-grid">
-
-            <!-- Active Alerts -->
-
-            <div class="dashboard-card">
+            <div class="overview-card">
 
                 <div class="section-header">
-                    <h2>Recent Alerts</h2>
+                    <h2>Log Statistics</h2>
                 </div>
 
-                <div id="recentAlerts">
+                <div class="kpi-grid">
 
-                    <div class="empty-state">
-                        No alerts available
+                    <div class="kpi-item">
+                        <h3>Total Logs</h3>
+                        <span id="totalLogs">--</span>
+                    </div>
+
+                    <div class="kpi-item">
+                        <h3>Error Logs</h3>
+                        <span id="errorLogs">--</span>
+                    </div>
+
+                    <div class="kpi-item">
+                        <h3>Warning Logs</h3>
+                        <span id="warningLogs">--</span>
+                    </div>
+
+                    <div class="kpi-item">
+                        <h3>Error Rate</h3>
+                        <span id="errorRate">--%</span>
                     </div>
 
                 </div>
 
             </div>
 
-            <!-- Top Error Services -->
+            <!-- SYSTEM HEALTH -->
+
+            <div class="overview-card">
+
+                <div class="section-header">
+                    <h2>System Health</h2>
+                </div>
+
+                <div class="health-grid">
+
+                    <div class="health-item">
+                        <h3>Services Monitored</h3>
+                        <span id="serviceCount">--</span>
+                    </div>
+
+                    <div class="health-item">
+                        <h3>Active Alerts</h3>
+                        <span id="activeAlerts">--</span>
+                    </div>
+
+                    <div class="health-item">
+                        <h3>Critical Logs</h3>
+                        <span id="criticalLogs">--</span>
+                    </div>
+
+                    <div class="health-item">
+                        <h3>System Status</h3>
+                        <span id="systemStatus">Healthy</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- DASHBOARD INSIGHTS -->
+
+        <section class="dashboard-grid">
+
+            <!-- TOP ERROR SERVICES -->
 
             <div class="dashboard-card">
 
@@ -189,55 +172,27 @@
 
             </div>
 
-        </section>
+            <!-- RECENT ALERTS -->
 
-        <!-- Quick Actions -->
+            <div class="dashboard-card">
 
-        <section class="quick-actions">
+                <div class="section-header">
+                    <h2>Recent Alerts</h2>
+                </div>
 
-            <div class="section-header">
-                <h2>Quick Actions</h2>
-            </div>
+                <div id="recentAlerts">
 
-            <div class="action-grid">
+                    <div class="empty-state">
+                        No alerts available
+                    </div>
 
-                <a href="/logs" class="action-card">
-
-                    <h3>Explore Logs</h3>
-
-                    <p>
-                        Search, filter and inspect logs
-                        across services.
-                    </p>
-
-                </a>
-
-                <a href="/analytics" class="action-card">
-
-                    <h3>Analytics</h3>
-
-                    <p>
-                        Analyze trends, clusters,
-                        anomalies and patterns.
-                    </p>
-
-                </a>
-
-                <a href="/alerts" class="action-card">
-
-                    <h3>Alert Center</h3>
-
-                    <p>
-                        Monitor incidents and alert activity.
-                    </p>
-
-                </a>
+                </div>
 
             </div>
 
         </section>
 
-        <!-- Recent Logs -->
+        <!-- RECENT LOGS -->
 
         <section class="recent-activity">
 

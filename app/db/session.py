@@ -12,20 +12,18 @@ settings = get_settings()
 
 engine = create_async_engine(
     settings.database_url,
-    echo = settings.sqlalchemy_echo,
-    pool_pre_ping = True,
+    echo=settings.sqlalchemy_echo,
+    pool_pre_ping=True,
 )
 
 AsyncSessionFactory = async_sessionmaker(
-    bind = engine,
-    class_= AsyncSession, 
-    expire_on_commit = False
+    bind=engine, class_=AsyncSession, expire_on_commit=False
 )
 
 
-async def get_db_session() -> AsyncGenerator[AsyncSession,None]:
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionFactory() as session:
         try:
-            yield session 
+            yield session
         finally:
             await session.close()

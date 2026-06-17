@@ -11,6 +11,7 @@ settings = get_settings()
 
 scheduler = AsyncIOScheduler()
 
+
 async def run_alert_check():
     """Perodic alert checking task"""
 
@@ -37,19 +38,13 @@ def start_schedular():
     scheduler.add_job(
         run_alert_check,
         "interval",
-        minutes = 2,
+        minutes=2,
         id="alert-check-job",
-        replace_existing=True
+        replace_existing=True,
     )
 
     scheduler.add_job(
-        run_cleanup,
-        "cron",
-        hour=0,
-        minute=0,
-        id="cleanup-job",
-        replace_existing=True
+        run_cleanup, "cron", hour=0, minute=0, id="cleanup-job", replace_existing=True
     )
-
 
     scheduler.start()

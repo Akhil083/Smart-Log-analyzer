@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.log import IngestionMode
+
 
 class AlertRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -16,6 +18,10 @@ class AlertRead(BaseModel):
     message: str
     created_at: datetime
     severity: str
+    status: str
+    updated_at: datetime
+    resolved_at: datetime | None
+    ingestion_mode: IngestionMode
 
 
 class AlertListResponse(BaseModel):
@@ -30,6 +36,8 @@ class TriggeredAlert(BaseModel):
     value: int
     message: str
     severity: str
+    status: str = "ACTIVE"
+    ingestion_mode: IngestionMode
 
 
 class AlertCheckResponse(BaseModel):

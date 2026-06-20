@@ -7,7 +7,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_log_filter
 from app.db.session import get_db_session
-from app.schemas.analytics import *
+from app.schemas.analytics import (
+    ClusterResponse,
+    CountMapResponse,
+    LogBaseResponse,
+    SemanticSearchResponse,
+    SemanticSearchResult,
+    SummaryResponse,
+    TimelineAnomalyPoint,
+    TimelineAnomalyResponse,
+    TimelinePoint,
+    TimelineResponse,
+    TopErrorServicesResponse,
+)
 from app.schemas.log import LogFilterParams
 from app.services.analytics_service import AnalyticsServices
 from app.services.semantic_log_search_service import SemanticLogSearchService
@@ -113,11 +125,18 @@ async def get_timeline(
     summary="Timeline with anomaly detection",
 )
 async def get_timeline_anomalies(
-    interval: str = "minute", session: AsyncSession = Depends(get_db_session)
+    filters: Annotated[LogFilterParams, Depends(get_log_filter)],
+    interval: str = "minute",
+    session: AsyncSession = Depends(get_db_session),
 ) -> TimelineAnomalyResponse:
 
     service = AnalyticsServices(session)
-    result = await service.get_timeline_with_anomalies(interval)
+
+    result = await service.get_timeline_with_anomalies(
+        interval=interval,
+        filters=filters,
+    )
+
     return TimelineAnomalyResponse(
         item=[TimelineAnomalyPoint(**item) for item in result]
     )
@@ -128,6 +147,7 @@ async def get_timeline_anomalies(
     "/clusters", response_model=ClusterResponse, summary="Cluster recent log messages"
 )
 async def get_clusters(
+    filters: Annotated[LogFilterParams, Depends(get_log_filter)],
     limit: Annotated[
         int,
         Query(
@@ -139,7 +159,11 @@ async def get_clusters(
 ) -> ClusterResponse:
 
     service = AnalyticsServices(session)
-    result = await service.get_cluster(limit=limit, n_clusters=n_clusters)
+    result = await service.get_cluster(
+        limit=limit,
+        n_clusters=n_clusters,
+        filters=filters,
+    )
     return ClusterResponse(clusters=result)
 
 
@@ -179,6 +203,7 @@ def to_semantic_result(match) -> SemanticSearchResult:
             request_id=match.log.request_id,
             host=match.log.host,
             metadata=raw_metadata,
+            ingestion_mode=match.log.ingestion_mode,
         ),
     )
 
@@ -189,6 +214,7 @@ def to_semantic_result(match) -> SemanticSearchResult:
     summary="Search log by semantic search",
 )
 async def semantic_search(
+    filters: Annotated[LogFilterParams, Depends(get_log_filter)],
     query: Annotated[str, Query(min_length=1)],
     candidate_limit: Annotated[int, Query(ge=1, le=1000)] = 200,
     top_k: Annotated[int, Query(ge=1, le=50)] = 10,
@@ -200,6 +226,7 @@ async def semantic_search(
         query=query,
         candidate_limit=candidate_limit,
         top_k=top_k,
+        filters=filters,
     )
 
     return SemanticSearchResponse(
@@ -225,3 +252,18 @@ async def top_error_services(
     result = await service.get_top_error_services(limit=limit, filters=filters)
 
     return TopErrorServicesResponse(items=result)
+
+
+@router.get(
+    "/filter-options",
+    summary="Get filter dropdown values",
+)
+async def get_filter_options(
+    filters: Annotated[LogFilterParams, Depends(get_log_filter)],
+    session: AsyncSession = Depends(get_db_session),
+):
+    service = AnalyticsServices(session)
+
+    return await service.get_filter_options(
+        filters=filters,
+    )

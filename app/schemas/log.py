@@ -6,6 +6,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 SortOrder = Literal["asc", "desc"]
+IngestionMode = Literal["uploaded", "realtime"]
 
 
 class LogCreate(BaseModel):
@@ -57,6 +58,10 @@ class LogCreate(BaseModel):
         default_factory=dict, description="structure metadata attached to the log entry"
     )
 
+    ingestion_mode: IngestionMode = Field(
+        default="realtime", description="Source of ingestion: uploaded or realtime"
+    )
+
 
 class LogBulkCreate(BaseModel):
     logs: list[LogCreate] = Field(
@@ -79,6 +84,7 @@ class LogRead(BaseModel):
     request_id: str | None = None
     host: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+    ingestion_mode: IngestionMode
 
 
 class LogListResponse(BaseModel):
@@ -111,6 +117,9 @@ class LogFilterParams(BaseModel):
         default=None,
     )
     page: int = Field(default=1, ge=1)
-    limit: int = Field(default=20, ge=1, le=100)
+    limit: int = Field(default=20, ge=1)
     sort_order: SortOrder = Field(default="desc")
     source: str | None = Field(default=None, max_length=100)
+    ingestion_mode: IngestionMode | None = Field(
+        default=None, description="uploaded or realtime"
+    )

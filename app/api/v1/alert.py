@@ -2,14 +2,18 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db_session
-from app.schemas.alerts import *
+from app.schemas.alerts import AlertCheckResponse, AlertListResponse, AlertRead
+from app.schemas.log import IngestionMode
 from app.services.alert_service import AlertService
 
-router = APIRouter(prefix="/alerts", tags=["Alerts"])
+router = APIRouter(
+    prefix="/alerts",
+    tags=["Alerts"],
+)
 
 
 @router.get(
@@ -20,16 +24,22 @@ router = APIRouter(prefix="/alerts", tags=["Alerts"])
 async def list_aletrs(
     service: str | None = None,
     metric: str | None = None,
-    limit: Annotated[int, Query(ge=1, le=500)] = 100,
     severity: str | None = None,
+    status: str | None = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    ingestion_mode: IngestionMode | None = None,
     session: AsyncSession = Depends(get_db_session),
 ) -> AlertListResponse:
+
     alert_service = AlertService(session)
+
     items, total = await alert_service.list_alerts(
         service=service,
         metric=metric,
-        limit=limit,
         severity=severity,
+        status=status,
+        limit=limit,
+        ingestion_mode=ingestion_mode,
     )
 
     return AlertListResponse(
@@ -38,20 +48,35 @@ async def list_aletrs(
     )
 
 
-@router.get("/check", response_model=AlertListResponse)
+@router.get(
+    "/check",
+    response_model=AlertCheckResponse,
+    summary="Trigger alert evaluation manually",
+)
 async def check_alerts(
     threshold: int = Query(50, ge=1),
     service: str | None = None,
     interval: str = Query("minute"),
+    ingestion_mode: IngestionMode = Query("realtime"),
     session: AsyncSession = Depends(get_db_session),
 ):
-    """Trigger alert evaluation manually"""
 
     alert_service = AlertService(session)
+
     error_alerts = await alert_service.check_error_threshold(
-        threshold=threshold, service=service
+        threshold=threshold,
+        service=service,
     )
-    anomaly_alerts = await alert_service.check_anomaly_alerts(interval=interval)
+
+    anomaly_alerts = await alert_service.check_anomaly_alerts(
+        interval=interval,
+    )
+
+    if ingestion_mode != "realtime":
+        raise HTTPException(
+            status_code=400,
+            detail="Alert evaluation is only available for realtime logs",
+        )
 
     return AlertCheckResponse(
         alert_triggered=len(error_alerts) + len(anomaly_alerts),
@@ -60,12 +85,19 @@ async def check_alerts(
     )
 
 
-@router.get("/active-count")
+@router.get(
+    "/active-count",
+    summary="Get active alert count",
+)
 async def get_active_alert_count(
+    ingestion_mode: IngestionMode | None = None,
     session: AsyncSession = Depends(get_db_session),
 ):
-    service = AlertService(session)
 
-    count = await service.get_active_alert_count()
+    alert_service = AlertService(session)
+
+    count = await alert_service.get_active_alert_count(
+        ingestion_mode=ingestion_mode,
+    )
 
     return {"count": count}

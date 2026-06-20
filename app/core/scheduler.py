@@ -13,27 +13,37 @@ scheduler = AsyncIOScheduler()
 
 
 async def run_alert_check():
-    """Perodic alert checking task"""
+    """Periodic alert checking task"""
 
-    async with AsyncSessionFactory() as session:
-        alert_service = AlertService(session)
+    try:
+        async with AsyncSessionFactory() as session:
+            alert_service = AlertService(session)
 
-        await alert_service.check_error_threshold(threshold=50)
+            await alert_service.check_error_threshold(threshold=50)
 
-        await alert_service.check_anomaly_alerts(interval="minute")
+            await alert_service.check_anomaly_alerts(interval="minute")
+
+    except Exception as exc:
+        print(f"Alert check failed: {exc}")
 
 
 async def run_cleanup():
-    """Perodic cleanup task"""
+    """Periodic cleanup task"""
 
-    async with AsyncSessionFactory() as session:
-        cleanup_service = CleanupService(session)
+    try:
+        async with AsyncSessionFactory() as session:
+            cleanup_service = CleanupService(session)
 
-        await cleanup_service.delete_old_log(retention_days=settings.log_retention_days)
+            await cleanup_service.delete_old_log(
+                retention_days=settings.log_retention_days
+            )
+
+    except Exception as exc:
+        print(f"Cleanup job failed: {exc}")
 
 
 def start_schedular():
-    """Start schedular background jobs"""
+    """Start scheduler background jobs"""
 
     scheduler.add_job(
         run_alert_check,
@@ -41,10 +51,17 @@ def start_schedular():
         minutes=2,
         id="alert-check-job",
         replace_existing=True,
+        max_instances=1,
     )
 
     scheduler.add_job(
-        run_cleanup, "cron", hour=0, minute=0, id="cleanup-job", replace_existing=True
+        run_cleanup,
+        "cron",
+        hour=0,
+        minute=0,
+        id="cleanup-job",
+        replace_existing=True,
+        max_instances=1,
     )
 
     scheduler.start()

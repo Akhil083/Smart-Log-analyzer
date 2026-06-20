@@ -79,6 +79,7 @@ class LogBaseResponse(BaseModel):
     request_id: str | None = None
     host: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+    ingestion_mode: str
 
 
 class SemanticSearchResult(BaseModel):

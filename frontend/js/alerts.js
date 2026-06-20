@@ -58,7 +58,7 @@ async function refreshPage() {
 
 async function loadAlertStatistics() {
   try {
-    const alertsResponse = await fetch(`${API_BASE_URL}/alerts?limit=500`);
+    const alertsResponse = await fetch(getApiUrl(`/alerts?limit=500`));
 
     const alertsData = await alertsResponse.json();
 
@@ -69,6 +69,7 @@ async function loadAlertStatistics() {
     );
 
     let criticalCount = 0;
+    let resolvedCount = 0;
     let highCount = 0;
 
     alerts.forEach((alert) => {
@@ -76,6 +77,9 @@ async function loadAlertStatistics() {
         criticalCount++;
       }
 
+      if (alert.status === "RESOLVED") {
+        resolvedCount++;
+      }
       if (alert.severity === "HIGH") {
         highCount++;
       }
@@ -84,16 +88,17 @@ async function loadAlertStatistics() {
     document.getElementById("criticalAlerts").textContent =
       formatNumber(criticalCount);
 
+    document.getElementById("resolvedAlerts").textContent =
+      formatNumber(resolvedCount);
     document.getElementById("highSeverityAlerts").textContent =
       formatNumber(highCount);
-
     try {
-      const activeResponse = await fetch(`${API_BASE_URL}/alerts/active-count`);
+      const activeResponse = await fetch(getApiUrl(`/alerts/active-count`));
 
       const activeData = await activeResponse.json();
 
       document.getElementById("activeAlerts").textContent = formatNumber(
-        activeData.active_alerts,
+        activeData.count,
       );
     } catch {
       document.getElementById("activeAlerts").textContent = formatNumber(
@@ -121,7 +126,7 @@ async function loadAlerts() {
 
     query.append("limit", "500");
 
-    const response = await fetch(`${API_BASE_URL}/alerts?${query.toString()}`);
+    const response = await fetch(getApiUrl(`/alerts?${query.toString()}`));
 
     const data = await response.json();
 
@@ -176,6 +181,17 @@ function renderAlertsTable(alerts) {
             <td>
                 ${formatDate(alert.created_at)}
             </td>
+            <td>
+              <span class="status ${alert.status.toLowerCase()}">
+                  ${alert.status}
+              </span>
+            </td>
+
+            <td>${formatDate(alert.updated_at)}</td>
+
+            <td>
+              ${alert.resolved_at ? formatDate(alert.resolved_at) : "-"}
+            </td>
         `;
 
     tbody.appendChild(row);
@@ -188,7 +204,7 @@ function renderAlertsTable(alerts) {
 
 async function loadRecentAlertsFeed() {
   try {
-    const response = await fetch(`${API_BASE_URL}/alerts?limit=5`);
+    const response = await fetch(getApiUrl(`/alerts?limit=5`));
 
     const data = await response.json();
 
@@ -243,6 +259,17 @@ async function loadRecentAlertsFeed() {
 async function runAlertCheck(event) {
   event.preventDefault();
 
+  const mode = getIngestionMode();
+
+  if (mode !== "realtime") {
+    document.getElementById("alertCheckResult").innerHTML = `
+      <div class="error-message">
+          Alert evaluation is only available for realtime logs.
+      </div>
+    `;
+    return;
+  }
+
   try {
     const threshold = document.getElementById("threshold").value;
 
@@ -261,8 +288,13 @@ async function runAlertCheck(event) {
     }
 
     const response = await fetch(
-      `${API_BASE_URL}/alerts/check?${params.toString()}`,
+      getApiUrl(`/alerts/check?${params.toString()}`),
     );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail);
+    }
 
     const result = await response.json();
 
@@ -297,10 +329,9 @@ async function runAlertCheck(event) {
 function applyFilters() {
   currentFilters = {
     service: document.getElementById("filterService").value.trim(),
-
     metric: document.getElementById("filterMetric").value.trim(),
-
     severity: document.getElementById("filterSeverity").value,
+    status: document.getElementById("filterStatus").value,
   };
 
   loadAlerts();
@@ -308,10 +339,9 @@ function applyFilters() {
 
 function clearFilters() {
   document.getElementById("filterService").value = "";
-
   document.getElementById("filterMetric").value = "";
-
   document.getElementById("filterSeverity").value = "";
+  document.getElementById("filterStatus").value = "";
 
   currentFilters = {};
 

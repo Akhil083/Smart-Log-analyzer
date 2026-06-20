@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import Query
 
-from app.schemas.log import LogFilterParams, SortOrder
+from app.schemas.log import IngestionMode, LogFilterParams, SortOrder
 
 
 def get_log_filter(
@@ -19,8 +19,14 @@ def get_log_filter(
     start_time: datetime | None = None,
     end_time: datetime | None = None,
     page: Annotated[int, Query(ge=1)] = 1,
-    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    limit: Annotated[
+        int,
+        Query(
+            ge=1,
+        ),
+    ] = 20,
     sort_order: SortOrder = "desc",
+    ingestion_mode: IngestionMode | None = None,
 ) -> LogFilterParams:
     """
     Build log filter parameters from query string input.
@@ -40,4 +46,5 @@ def get_log_filter(
         page=page,
         limit=limit,
         sort_order=sort_order,
+        ingestion_mode=ingestion_mode,
     )

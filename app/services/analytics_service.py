@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
+
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -238,3 +240,60 @@ class AnalyticsServices:
         result = await self.session.execute(query)
 
         return result.scalar_one()
+
+    async def get_error_count_for_period(
+        self,
+        minutes: int = 5,
+        service: str | None = None,
+        filters: LogFilterParams | None = None,
+    ) -> int:
+
+        effective_filters = filters or LogFilterParams()
+
+        cutoff = datetime.utcnow() - timedelta(minutes=minutes)
+
+        query = (
+            select(func.count())
+            .where(Log.level == "ERROR")
+            .where(Log.emitted_at >= cutoff)
+        )
+
+        if service:
+            query = query.where(Log.service == service)
+        query = apply_log_filters(
+            query,
+            effective_filters,
+        )
+
+        result = await self.session.execute(query)
+
+        return result.scalar_one()
+
+    async def get_filter_options(
+        self,
+        filters: LogFilterParams | None = None,
+    ):
+        effective_filters = filters or LogFilterParams()
+
+        service_query = apply_log_filters(
+            select(Log.service).distinct(),
+            effective_filters,
+        )
+
+        environment_query = apply_log_filters(
+            select(Log.environment).distinct(),
+            effective_filters,
+        )
+
+        service_result = await self.session.execute(service_query)
+
+        environment_result = await self.session.execute(environment_query)
+
+        return {
+            "services": sorted(
+                [item for item in service_result.scalars().all() if item]
+            ),
+            "environments": sorted(
+                [item for item in environment_result.scalars().all() if item]
+            ),
+        }

@@ -6,6 +6,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (refreshBtn) {
     refreshBtn.addEventListener("click", loadDashboard);
   }
+
+  const modeSelect = document.getElementById("analysisMode");
+
+  if (modeSelect) {
+    modeSelect.addEventListener("change", () => {
+      loadDashboard();
+    });
+  }
 });
 
 async function loadDashboard() {
@@ -27,7 +35,7 @@ async function loadDashboard() {
 
 async function loadSummary() {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/summary`);
+    const response = await fetch(getApiUrl("/analytics/summary"));
 
     const data = await response.json();
 
@@ -52,7 +60,7 @@ async function loadSummary() {
 
 async function loadWarningCount() {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/warning-count`);
+    const response = await fetch(getApiUrl("/analytics/warning-count"));
 
     const data = await response.json();
 
@@ -66,7 +74,7 @@ async function loadWarningCount() {
 
 async function loadCriticalCount() {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/critical-count`);
+    const response = await fetch(getApiUrl("/analytics/critical-count"));
 
     const data = await response.json();
 
@@ -80,7 +88,7 @@ async function loadCriticalCount() {
 
 async function loadServiceCount() {
   try {
-    const response = await fetch(`${API_BASE_URL}/logs/service-count`);
+    const response = await fetch(getApiUrl("/logs/service-count"));
 
     const data = await response.json();
 
@@ -94,7 +102,7 @@ async function loadServiceCount() {
 
 async function loadActiveAlertCount() {
   try {
-    const response = await fetch(`${API_BASE_URL}/alerts/active-count`);
+    const response = await fetch(getApiUrl("/alerts/active-count"));
 
     const data = await response.json();
 
@@ -108,9 +116,7 @@ async function loadActiveAlertCount() {
 
 async function loadTopServices() {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/top-error-services`,
-    );
+    const response = await fetch(getApiUrl("/analytics/top-error-services"));
 
     const data = await response.json();
 
@@ -143,7 +149,7 @@ async function loadTopServices() {
 
 async function loadRecentAlerts() {
   try {
-    const response = await fetch(`${API_BASE_URL}/alerts?limit=5`);
+    const response = await fetch(getApiUrl(`/alerts?limit=5`));
 
     const data = await response.json();
 
@@ -179,7 +185,7 @@ async function loadRecentAlerts() {
 
 async function loadRecentLogs() {
   try {
-    const response = await fetch(`${API_BASE_URL}/logs?limit=5`);
+    const response = await fetch(getApiUrl(`/logs?limit=5`));
 
     const data = await response.json();
 

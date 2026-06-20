@@ -16,39 +16,7 @@
 
 <body>
 
-    <!-- SIDEBAR -->
-
-    <aside class="sidebar">
-
-        <div class="logo">
-            <h2>SmartLog</h2>
-        </div>
-
-        <nav>
-
-            <a href="/">
-                Dashboard
-            </a>
-
-            <a href="/logs">
-                Logs
-            </a>
-
-            <a href="/analytics" class="active">
-                Analytics
-            </a>
-
-            <a href="/alerts">
-                Alerts
-            </a>
-
-            <a href="/settings">
-                Settings
-            </a>
-
-        </nav>
-
-    </aside>
+    <div id="appsidebar"></div>
 
     <!-- MAIN CONTENT -->
 
@@ -97,7 +65,9 @@
 
                     <label>Service</label>
 
-                    <input type="text" id="filterService">
+                    <select id="filterService">
+                        <option value="">All Services</option>
+                    </select>
 
                 </div>
 
@@ -135,7 +105,9 @@
 
                     <label>Environment</label>
 
-                    <input type="text" id="filterEnvironment">
+                    <select id="filterEnvironment">
+                        <option value="">All Environments</option>
+                    </select>
 
                 </div>
 
@@ -323,6 +295,7 @@
 
     <script src="/static/js/common.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/layout.js"></script>
     <script src="/static/js/analytics.js"></script>
 
 </body>

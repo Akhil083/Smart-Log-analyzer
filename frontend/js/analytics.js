@@ -40,6 +40,7 @@ async function initializeAnalytics() {
       loadAnomalies(),
       loadClusters(),
       loadServiceDistribution(),
+      loadFilterOptions(),
     ]);
   } catch (error) {
     console.error("Analytics initialization failed", error);
@@ -83,7 +84,7 @@ function clearFilters() {
 async function loadSummary() {
   const filters = getFilters();
 
-  const response = await fetch(`${API_BASE_URL}/analytics/summary?${filters}`);
+  const response = await fetch(getApiUrl(`/analytics/summary?${filters}`));
 
   const data = await response.json();
 
@@ -104,7 +105,7 @@ async function loadWarningCount() {
   const filters = getFilters();
 
   const response = await fetch(
-    `${API_BASE_URL}/analytics/warning-count?${filters}`,
+    getApiUrl(`/analytics/warning-count?${filters}`),
   );
 
   const data = await response.json();
@@ -122,7 +123,7 @@ async function loadCriticalCount() {
   const filters = getFilters();
 
   const response = await fetch(
-    `${API_BASE_URL}/analytics/critical-count?${filters}`,
+    getApiUrl(`/analytics/critical-count?${filters}`),
   );
 
   const data = await response.json();
@@ -140,9 +141,9 @@ async function loadServiceDistribution() {
   const filters = getFilters();
 
   const [serviceResponse, errorResponse] = await Promise.all([
-    fetch(`${API_BASE_URL}/analytics/service?${filters}`),
+    fetch(getApiUrl(`/analytics/service?${filters}`)),
 
-    fetch(`${API_BASE_URL}/analytics/top-error-services?${filters}`),
+    fetch(getApiUrl(`/analytics/top-error-services?${filters}`)),
   ]);
 
   const serviceData = await serviceResponse.json();
@@ -231,9 +232,10 @@ function renderDistribution(containerId, distribution) {
 
 async function loadTimeline() {
   const interval = document.getElementById("timelineInterval").value;
+  const filters = getFilters();
 
   const response = await fetch(
-    `${API_BASE_URL}/analytics/timeline?interval=${interval}`,
+    getApiUrl(`/analytics/timeline?interval=${interval}&${filters}`),
   );
 
   const data = await response.json();
@@ -273,25 +275,37 @@ async function loadTimeline() {
           label: "Total Logs",
           data: values,
           borderColor: "#2563eb",
+          backgroundColor: "rgba(37, 99, 235, 0.05)",
+          fill: true,
           tension: 0.35,
+          pointRadius: 3,
         },
         {
           label: "Warnings",
           data: warnings,
           borderColor: "#f59e0b",
+          backgroundColor: "rgba(245, 158, 11, 0.05)",
+          fill: true,
           tension: 0.35,
+          pointRadius: 3,
         },
         {
           label: "Errors",
           data: errors,
           borderColor: "#dc2626",
+          backgroundColor: "rgba(220, 38, 38, 0.05)",
+          fill: true,
           tension: 0.35,
+          pointRadius: 3,
         },
         {
           label: "Critical",
           data: criticals,
           borderColor: "#7f1d1d",
+          backgroundColor: "rgba(127, 29, 29, 0.05)", // Deep red fill
+          fill: true,
           tension: 0.35,
+          pointRadius: 3,
         },
       ],
     },
@@ -303,7 +317,12 @@ async function loadTimeline() {
 
       plugins: {
         legend: {
-          display: false,
+          display: true,
+          position: "top",
+          labels: {
+            usePointStyle: true,
+            boxWidth: 10,
+          },
         },
       },
 
@@ -320,7 +339,11 @@ async function loadTimeline() {
 ====================================================== */
 
 async function loadAnomalies() {
-  const response = await fetch(`${API_BASE_URL}/analytics/timeline/anomalies`);
+  const filters = getFilters();
+
+  const response = await fetch(
+    getApiUrl(`/analytics/timeline/anomalies${filters}`),
+  );
 
   const data = await response.json();
 
@@ -361,9 +384,12 @@ async function loadClusters() {
   const limit = document.getElementById("clusterLimit").value;
 
   const nClusters = document.getElementById("clusterCount").value;
+  const filters = getFilters();
 
   const response = await fetch(
-    `${API_BASE_URL}/analytics/clusters?limit=${limit}&n_clusters=${nClusters}`,
+    getApiUrl(
+      `/analytics/clusters?limit=${limit}&n_clusters=${nClusters}&${filters}`,
+    ),
   );
 
   const data = await response.json();
@@ -415,11 +441,13 @@ async function performSemanticSearch() {
 
   if (!query) return;
 
-  const url =
-    `${API_BASE_URL}/analytics/semantic_search` +
-    `?query=${encodeURIComponent(query)}` +
-    `&top_k=${topK}` +
-    `&candidate_limit=${candidateLimit}`;
+  const url = getApiUrl(
+    `/analytics/semantic_search` +
+      `?query=${encodeURIComponent(query)}` +
+      `&top_k=${topK}` +
+      `&candidate_limit=${candidateLimit}` +
+      `&${filters}`,
+  );
 
   const response = await fetch(url);
 

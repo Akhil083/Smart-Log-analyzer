@@ -38,4 +38,7 @@ def apply_log_filters(query: Select, filters: LogFilterParams) -> Select:
         if keyword:
             query = query.where(Log.message.ilike(f"%{keyword}%"))
 
+    if filters.ingestion_mode:
+        query = query.where(Log.ingestion_mode == filters.ingestion_mode)
+
     return query

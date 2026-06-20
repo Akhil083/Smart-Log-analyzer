@@ -23,6 +23,19 @@ class Alert(Base):
 
     message: Mapped[str] = mapped_column(nullable=False)
 
+    severity: Mapped[str] = mapped_column(nullable=False, default="WARNING")
+
+    status: Mapped[str] = mapped_column(nullable=False, default="ACTIVE")
+
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    severity: Mapped[str] = mapped_column(nullable=False, default="WARNING")
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(), onupdate=func.now()
+    )
+
+    resolved_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+    ingestion_mode: Mapped[str] = mapped_column(
+        nullable=False,
+        default="REALTIME",
+    )

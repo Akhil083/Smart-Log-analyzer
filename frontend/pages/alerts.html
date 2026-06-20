@@ -17,39 +17,7 @@
 
 <body>
 
-    <!-- SIDEBAR -->
-
-    <aside class="sidebar">
-
-        <div class="logo">
-            <h2>SmartLog</h2>
-        </div>
-
-        <nav>
-
-            <a href="/">
-                Dashboard
-            </a>
-
-            <a href="/logs">
-                Logs
-            </a>
-
-            <a href="/analytics">
-                Analytics
-            </a>
-
-            <a href="/alerts" class="active">
-                Alerts
-            </a>
-
-            <a href="/settings">
-                Settings
-            </a>
-
-        </nav>
-
-    </aside>
+    <div id="appsidebar"></div>
 
     <!-- MAIN CONTENT -->
 
@@ -116,10 +84,14 @@
                         <h3>Critical Alerts</h3>
                         <span id="criticalAlerts">--</span>
                     </div>
-
                     <div class="kpi-item">
                         <h3>High Severity</h3>
                         <span id="highSeverityAlerts">--</span>
+                    </div>
+
+                    <div class="kpi-item">
+                        <h3>Resolved Alerts</h3>
+                        <span id="resolvedAlerts">--</span>
                     </div>
 
                 </div>
@@ -136,13 +108,21 @@
 
                 <form id="alertCheckForm">
 
-                    <div class="filter-grid">
+                    <div class="filter-grid evaluation-grid">
 
                         <div class="form-group">
 
                             <label>Threshold</label>
 
                             <input type="number" id="threshold" value="50" min="1">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>Window (Minutes)</label>
+
+                            <input type="number" id="windowMinutes" value="5" min="1">
 
                         </div>
 
@@ -242,6 +222,16 @@
                         </select>
                     </div>
 
+                    <div class="form-group">
+                        <label>Status</label>
+
+                        <select id="filterStatus">
+                            <option value="">All</option>
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="RESOLVED">RESOLVED</option>
+                        </select>
+                    </div>
+
                 </div>
 
                 <div class="filter-actions">
@@ -259,6 +249,17 @@
             </div>
 
         </section>
+
+        </section>
+        <section class="recent-alerts">
+
+            <div class="section-header">
+                <h2>Active Alerts</h2>
+            </div>
+
+            <div class="alert-feed" id="activeAlertsFeed">
+                Loading...
+            </div>
 
         </section>
 
@@ -281,10 +282,13 @@
                             <th>Service</th>
                             <th>Metric</th>
                             <th>Severity</th>
+                            <th>Status</th>
                             <th>Value</th>
                             <th>Threshold</th>
                             <th>Message</th>
                             <th>Created</th>
+                            <th>Updated</th>
+                            <th>Resolved</th>
                         </tr>
 
                     </thead>
@@ -293,7 +297,7 @@
 
                         <tr>
 
-                            <td colspan="8">
+                            <td colspan="11">
                                 Loading alerts...
                             </td>
 
@@ -310,6 +314,7 @@
     </main>
 
     <script src="/static/js/common.js"></script>
+    <script src="/static/js/layout.js"></script>
     <script src="/static/js/alerts.js"></script>
 
 </body>

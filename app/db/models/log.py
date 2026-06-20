@@ -96,6 +96,10 @@ class Log(Base):
         doc="Flexible structured metadata associated with the log entry.",
     )
 
+    ingestion_mode: Mapped[str] = mapped_column(
+        nullable=False,
+    )
+
     def __repr__(self):
         return (
             f"Log(id={self.id!r},level = {self.level!r}, service= {self.service!r}),"

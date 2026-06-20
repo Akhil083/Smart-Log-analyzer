@@ -1,5 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
+  registerEvents();
   initializePage();
+
+  const modeSelect = document.getElementById("analysisMode");
+  if (modeSelect) {
+    modeSelect.addEventListener("change", () => {
+      initializePage(); // Re-fetch logs, summary, and service count based on the new mode
+    });
+  }
 });
 
 let currentPage = 1;
@@ -7,9 +15,12 @@ let currentLimit = 20;
 let totalPages = 1;
 
 async function initializePage() {
-  registerEvents();
-
-  await Promise.all([loadLogs(), loadSummary(), loadServiceCount()]);
+  await Promise.all([
+    loadLogs(),
+    loadSummary(),
+    loadServiceCount(),
+    loadFilterOptions(),
+  ]);
 }
 
 /* ==========================================
@@ -65,7 +76,7 @@ function registerEvents() {
 
 async function loadSummary() {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/summary`);
+    const response = await fetch(getApiUrl("/analytics/summary"));
 
     const data = await response.json();
 
@@ -91,7 +102,7 @@ async function loadSummary() {
 
 async function loadServiceCount() {
   try {
-    const response = await fetch(`${API_BASE_URL}/logs/service-count`);
+    const response = await fetch(getApiUrl("/logs/service-count"));
 
     const data = await response.json();
 
@@ -111,7 +122,7 @@ async function loadLogs() {
     const params = buildFilterQuery();
 
     const response = await fetch(
-      `${API_BASE_URL}/logs?page=${currentPage}&limit=${currentLimit}${params}`,
+      getApiUrl(`/logs?page=${currentPage}&limit=${currentLimit}${params}`),
     );
 
     const data = await response.json();
@@ -196,7 +207,7 @@ function renderLogsTable(logs) {
 
 async function viewLog(logId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/logs/${logId}`);
+    const response = await fetch(getApiUrl(`/logs/${logId}`));
 
     const log = await response.json();
 
@@ -248,7 +259,7 @@ async function viewLog(logId) {
 
 async function showSimilarLogs(logId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/logs/${logId}/similar`);
+    const response = await fetch(getApiUrl(`/logs/${logId}/similar`));
 
     const data = await response.json();
 
@@ -336,12 +347,17 @@ async function uploadLogs(event) {
     });
 
     const result = await response.json();
+    if (!response.ok) {
+      alert(`Upload failed: ${result.detail || "Unknown error"}`);
+      return;
+    }
 
     alert(`Uploaded ${result.ingested_count} logs`);
 
     await Promise.all([loadLogs(), loadSummary(), loadServiceCount()]);
   } catch (error) {
-    console.error(error);
+    console.error("Network or system error:", error);
+    alert("A network error occurred while uploading logs.");
   }
 }
 
@@ -355,9 +371,9 @@ function buildFilterQuery() {
 
     level: document.getElementById("level")?.value,
 
-    service: document.getElementById("service")?.value,
+    service: document.getElementById("filterService")?.value,
 
-    environment: document.getElementById("environment")?.value,
+    environment: document.getElementById("filterEnvironment")?.value,
 
     host: document.getElementById("host")?.value,
 
@@ -389,8 +405,8 @@ function clearFilters() {
   [
     "keyword",
     "level",
-    "service",
-    "environment",
+    "filterService",
+    "filterEnvironment",
     "host",
     "traceId",
     "requestId",

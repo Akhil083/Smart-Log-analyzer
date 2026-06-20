@@ -1,34 +1,54 @@
-const SIDEBAR_ITEMS = [
-  { key: "home", label: "Home", icon: "🏠", href: "/" },
-  { key: "analytics", label: "Analytics", icon: "📊", href: "analytics" },
-  { key: "logs", label: "Logs", icon: "📋", href: "logs" },
-  { key: "alerts", label: "Alerts", icon: "🔔", href: "alerts" },
-];
+function initializeAnalysisMode() {
+  const modeSelect = document.getElementById("analysisMode");
+  const modeLabel = document.getElementById("currentModeLabel");
+
+  if (!modeSelect || !modeLabel) return;
+
+  const savedMode = getIngestionMode();
+
+  modeSelect.value = savedMode;
+
+  modeLabel.textContent =
+    savedMode === "uploaded"
+      ? "Working on Uploaded Logs"
+      : "Working on Realtime Logs";
+
+  modeSelect.addEventListener("change", () => {
+    const mode = modeSelect.value;
+
+    setIngestionMode(mode);
+
+    modeLabel.textContent =
+      mode === "uploaded"
+        ? "Working on Uploaded Logs"
+        : "Working on Realtime Logs";
+  });
+}
 
 async function injectSidebar() {
   const mount = document.getElementById("appsidebar");
   if (!mount) return;
 
   try {
-    const response = await fetch("../components/sidebar.html");
+    const response = await fetch("/static/components/sidebar.html");
     if (!response.ok) throw new Error("Failed to fetch sidebar template");
 
     const template = await response.text();
     mount.innerHTML = template;
+    initializeAnalysisMode();
+    const currentPath = window.location.pathname;
 
-    const nav = mount.querySelector("[data-sidebar-nav]");
-    if (nav) {
-      const currentPage = document.body.dataset.page || "home";
+    const navLinks = mount.querySelectorAll("nav a");
 
-      nav.innerHTML = SIDEBAR_ITEMS.map(
-        (item) => `
-                <a class="sidebar-link ${item.key === currentPage ? "active" : ""}" href="${item.href}">
-                    <span>${item.icon}</span>
-                    <span>${item.label}</span>
-                </a>
-            `,
-      ).join("");
-    }
+    navLinks.forEach((link) => {
+      link.classList.remove("active");
+
+      const linkPath = link.getAttribute("href");
+
+      if (currentPath === linkPath) {
+        link.classList.add("active");
+      }
+    });
   } catch (error) {
     mount.innerHTML =
       '<aside class="sidebar"><p>Sidebar could not be loaded.</p></aside>';

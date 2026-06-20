@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_log_filter
 from app.db.models.log import Log
 from app.db.session import get_db_session
-from app.schemas.analytics import *
+from app.schemas.analytics import SimilarLogResponse, SimilarLogsResponses
 from app.schemas.log import (
     LogBulkCreate,
     LogCreate,
@@ -81,6 +81,7 @@ def to_log_read(log) -> LogRead:
             "request_id": log.request_id,
             "host": log.host,
             "metadata": log.log_metadata,
+            "ingestion_mode": log.ingestion_mode,
         }
     )
 
@@ -123,6 +124,7 @@ def to_similar_log_result(match) -> SimilarLogResponse:
             "request_id": match.log.request_id,
             "host": match.log.host,
             "metadata": match.log.log_metadata,
+            "ingestion_mode": match.log.ingestion_mode,
         },
     )
 

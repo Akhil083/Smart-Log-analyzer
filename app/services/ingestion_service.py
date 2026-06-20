@@ -45,7 +45,11 @@ class IngestionService:
         cleaned = value.strip()
         return cleaned or None
 
-    def build_log_model(self, payload: LogCreate) -> Log:
+    def build_log_model(
+        self,
+        payload: LogCreate,
+        ingestion_mode: str,
+    ) -> Log:
         """Convert a validated logcreate schema into a log orm instance"""
 
         return Log(
@@ -59,12 +63,16 @@ class IngestionService:
             request_id=self.clean_optional_string(payload.request_id),
             host=self.clean_optional_string(payload.host),
             log_metadata=payload.metadata,
+            ingestion_mode=ingestion_mode,
         )
 
     async def create_log(self, payload: LogCreate) -> Log:
         """Persist a single log entry and return a saved orm object"""
 
-        log = self.build_log_model(payload)
+        log = self.build_log_model(
+            payload,
+            ingestion_mode="realtime",
+        )
 
         try:
             self.session.add(log)
@@ -77,7 +85,13 @@ class IngestionService:
         return log
 
     async def create_log_bulk(self, payload: LogBulkCreate) -> list[Log]:
-        logs = [self.build_log_model(item) for item in payload.logs]
+        logs = [
+            self.build_log_model(
+                item,
+                ingestion_mode="realtime",
+            )
+            for item in payload.logs
+        ]
 
         try:
             self.session.add_all(logs)
@@ -91,9 +105,19 @@ class IngestionService:
 
         return logs
 
-    async def create_logs_from_items(self, items: Iterable[LogCreate]) -> list[Log]:
+    async def create_logs_from_items(
+        self,
+        items: Iterable[LogCreate],
+        ingestion_mode: str = "uploaded",
+    ) -> list[Log]:
 
-        logs = [self.build_log_model(item) for item in items]
+        logs = [
+            self.build_log_model(
+                item,
+                ingestion_mode=ingestion_mode,
+            )
+            for item in items
+        ]
 
         if not logs:
             return []

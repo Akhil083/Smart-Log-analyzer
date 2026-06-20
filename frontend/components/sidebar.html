@@ -6,8 +6,40 @@
 
     <section class="nav-group">
         <h4>Workspace</h4>
-        <nav class="sidebar-nav" data-sidebar-nav></nav>
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>SmartLog</h2>
+            </div>
+            <section class="mode-selector">
+                <h4>Working Mode</h4>
+
+                <select id="analysisMode">
+                    <option value="realtime">Realtime Logs</option>
+                    <option value="uploaded">Uploaded Logs</option>
+                </select>
+
+                <small id="currentModeLabel">
+                    Working on Realtime Logs
+                </small>
+            </section>
+
+            <nav>
+                <a href="/">Dashboard</a>
+
+                <a href="/logs">Logs</a>
+
+                <a href="/analytics">Analytics</a>
+
+                <a href="/alerts">Alerts</a>
+
+                <a href="/settings">Settings</a>
+            </nav>
+
+
+
+        </aside>
     </section>
+
 
     <div class="sidebar-footer">
         <p><strong>Tip:</strong> Use Analytics for trends, Logs for drill-down, and Alerts to review triggered

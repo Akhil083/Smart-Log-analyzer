@@ -474,6 +474,7 @@ function refreshPage() {
   loadLogs();
   loadSummary();
   loadServiceCount();
+  loadFilterOptions();
 }
 
 function updateLastRefresh() {

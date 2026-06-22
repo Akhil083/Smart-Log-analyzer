@@ -265,7 +265,7 @@ pip freeze > requirements.txt
 
 ## Database Migrations
 
-Alembic is used to manage database schema changes.
+Alembic is used to manage database schema changes. And it only used for Relational Database.
 
 ### Generate Migration
 
@@ -324,71 +324,6 @@ http://127.0.0.1:8000/redoc
 
 ---
 
-## API Endpoints
-
-### Logs
-
-| Method | Endpoint          | Description          |
-| ------ | ----------------- | -------------------- |
-| POST   | /api/v1/logs      | Create single log    |
-| POST   | /api/v1/logs/bulk | Create multiple logs |
-| GET    | /api/v1/logs      | Retrieve logs        |
-| GET    | /api/v1/logs/{id} | Retrieve log details |
-
-### Upload
-
-| Method | Endpoint       |
-| ------ | -------------- |
-| POST   | /api/v1/upload |
-
-### Analytics
-
-| Method | Endpoint                             |
-| ------ | ------------------------------------ |
-| GET    | /api/v1/analytics/summary            |
-| GET    | /api/v1/analytics/service            |
-| GET    | /api/v1/analytics/timeline           |
-| GET    | /api/v1/analytics/timeline/anomalies |
-| GET    | /api/v1/analytics/clusters           |
-| GET    | /api/v1/analytics/semantic-search    |
-
-### Alerts
-
-| Method | Endpoint                    |
-| ------ | --------------------------- |
-| GET    | /api/v1/alerts              |
-| GET    | /api/v1/alerts/check        |
-| GET    | /api/v1/alerts/active-count |
-
----
-
-## Workflow
-
-### Realtime Logs
-
-```text
-Application
-    ↓
-POST /logs
-    ↓
-Database
-    ↓
-Dashboard / Analytics / Alerts
-```
-
-### Historical Logs
-
-```text
-JSON File
-    ↓
-Upload API
-    ↓
-Database
-    ↓
-Analytics / Semantic Search / Clustering
-```
-
----
 
 ## Future Improvements
 
